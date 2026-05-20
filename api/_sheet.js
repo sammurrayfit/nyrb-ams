@@ -4,7 +4,7 @@
 const SHEET_ID = process.env.SHEET_ID || '1dKhc7TtQuDjQjNpcJGg7EjGqK_AsnvNMwbPB3D4wYHw';
 
 async function fetchSheet(tabName) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&tq=select%20*%20limit%2050000`;
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Failed to fetch sheet "${tabName}": ${res.status} ${res.statusText}`);
@@ -67,3 +67,4 @@ function parseCSVLine(line) {
 }
 
 module.exports = { fetchSheet };
+
