@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -57,30 +59,41 @@ tr:last-child td{border-bottom:none}
 .mcu{font-size:9px;color:var(--text3);margin-top:2px}
 .vald-wrap{background:#f0f0f0}
 .vald-tb{background:#fff;border-bottom:1px solid #ddd;padding:8px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.vtitle{background:var(--red);font-family:var(--font);font-size:17px;font-weight:800;letter-spacing:1px;color:#fff;padding:4px 16px;border-radius:3px;flex:1;text-align:center;text-transform:uppercase}
-.vc{background:#fff;border:1px solid #ddd;color:#1a1a1a;padding:5px 10px;border-radius:3px;font-size:12px;font-family:var(--fontb);outline:none;cursor:pointer}
-.vl{font-size:11px;color:#555;font-family:var(--font);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.vtitle{background:var(--red);font-family:var(--font);font-size:20px;font-weight:800;letter-spacing:1px;color:#fff;padding:6px 16px;border-radius:3px;flex:1;text-align:center;text-transform:uppercase}
+.vc{background:#fff;border:1px solid #ddd;color:#1a1a1a;padding:6px 12px;border-radius:3px;font-size:18px;font-weight:700;font-family:var(--font);outline:none;cursor:pointer}
+.vl{font-size:13px;color:#555;font-family:var(--font);font-weight:700;text-transform:uppercase;letter-spacing:.4px}
 .vd{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;background:#f0f0f0}
 @media(max-width:700px){.vd{grid-template-columns:1fr}}
-.vp{background:#fff;border:1px solid #ddd;padding:12px}
+.vp{background:#fff;border:1px solid #ddd;padding:16px}
 .vpf{grid-column:1/-1}
-.vpt{font-family:var(--font);font-size:12px;font-weight:800;text-transform:uppercase;color:#1a1a1a;margin-bottom:4px}
+.vpt{font-family:var(--font);font-size:14px;font-weight:800;text-transform:uppercase;color:#1a1a1a;margin-bottom:6px}
 .vpt span{color:var(--red)}
-.vleg{display:flex;gap:14px;margin-bottom:8px;flex-wrap:wrap}
-.vli{display:flex;align-items:center;gap:5px;font-size:11px;color:#555}
-.vld{width:10px;height:10px;border-radius:2px}
-.mt{width:100%;border-collapse:collapse;margin-top:10px;font-size:11px}
-.mt th{background:#cc0000;color:#fff;font-family:var(--font);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:5px 8px;text-align:left}
-.mt td{padding:5px 8px;border-bottom:1px solid #eee;color:#1a1a1a}
+.vleg{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.vli{display:flex;align-items:center;gap:5px;font-size:13px;color:#555}
+.vld{width:12px;height:12px;border-radius:2px}
+.mt{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+.mt th{background:#cc0000;color:#fff;font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:7px 10px;text-align:left}
+.mt td{padding:7px 10px;border-bottom:1px solid #eee;color:#1a1a1a}
 .mt tr:last-child td{border-bottom:none}
 .vax{display:flex;align-items:center;gap:4px}
-.vaxT{flex:1;height:5px;background:#eee;border-radius:2px;overflow:hidden;display:flex}
+.vaxT{flex:1;height:6px;background:#eee;border-radius:2px;overflow:hidden;display:flex}
 .vaxL{height:100%;background:#ddd}.vaxR{height:100%;background:var(--red)}
-.vaxl{font-size:9px;font-weight:600;min-width:22px;color:#555}
+.vaxl{font-size:11px;font-weight:600;min-width:26px;color:#555}
+/* ── Testing page size overrides ── */
+#page-testing .pt{font-size:14px}
+#page-testing th{font-size:12px;padding:9px 12px}
+#page-testing td{font-size:14px;padding:9px 12px}
+#page-testing select.ctrl{font-size:14px;padding:6px 10px}
+#page-testing .cl{font-size:13px}
+#page-testing .cb-lg{height:260px}
+#page-testing .cb{height:210px}
 .ms-nav{background:#fff;border-bottom:2px solid #eee;display:flex;overflow-x:auto;height:34px}
 .mst{padding:0 14px;height:34px;display:flex;align-items:center;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;flex-shrink:0}
 .mst:hover{color:var(--red)}.mst.active{color:var(--red);border-bottom-color:var(--red)}
 .msp{display:none}.msp.active{display:block}
+.tr-tab{padding:0 14px;height:34px;display:flex;align-items:center;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;flex-shrink:0}
+.tr-tab:hover{color:var(--red)}.tr-tab.active{color:var(--red);border-bottom-color:var(--red)}
+.tr-pane{display:none}.tr-pane.active{display:block}
 .scale-box{background:#fff;border:1px solid var(--border);border-radius:4px;padding:10px 12px;margin-bottom:8px}
 .sbt{font-family:var(--font);font-size:11px;font-weight:800;text-transform:uppercase;color:var(--red);margin-bottom:6px;letter-spacing:.3px}
 .sis{display:flex;gap:5px;flex-wrap:wrap}
@@ -101,6 +114,11 @@ tr:last-child td{border-bottom:none}
 .rn{font-family:var(--font);font-size:16px;font-weight:800;color:#ccc}.rn.top{color:var(--red)}
 .rb-w{display:flex;align-items:center;gap:5px}.rb{height:5px;border-radius:2px;background:var(--red)}
 @media print{*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.export-btn{background:var(--red);color:#fff;border:none;padding:5px 13px;border-radius:3px;font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:5px;flex-shrink:0}
+.export-btn:hover{background:#aa0000}
+.age-pill{background:#fff;border:1px solid var(--border);color:var(--text2);font-family:var(--font);font-size:11px;font-weight:700;padding:4px 9px;border-radius:3px;cursor:pointer;transition:all .12s;letter-spacing:.3px;white-space:nowrap}
+.age-pill.active{background:var(--red);border-color:var(--red);color:#fff}
+.age-pill:hover:not(.active){border-color:var(--red);color:var(--red)}
 </style>
 </head>
 <body>
@@ -121,11 +139,13 @@ tr:last-child td{border-bottom:none}
   <div class="nav-tab" data-p="playerday">Player / Day</div>
   <div class="nav-tab" data-p="playerweek">Player / Week</div>
   <div class="nav-tab" data-p="mdpm">MD +/-</div>
-  <div class="nav-tab" data-p="vald">VALD</div>
-  <div class="nav-tab" data-p="testing">Testing</div>
+  <div class="nav-tab" data-p="vald">Testing (Individual)</div>
+  <div class="nav-tab" data-p="testing">Testing (Squad View)</div>
   <div class="nav-tab" data-p="movement">Movement Screen</div>
+  <div class="nav-tab" data-p="phv">PHV</div>
   <div class="nav-tab" data-p="rank">Rankings</div>
   <div class="nav-tab" data-p="playercompare">Player Compare</div>
+  <div class="nav-tab" data-p="trialist">Trialist</div>
 </div>
 
 <!-- DAILY -->
@@ -134,11 +154,19 @@ tr:last-child td{border-bottom:none}
     <div class="dh-kpis" id="daily-kpis"></div>
     <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap">
       <span class="cl">Age:</span>
-      <select class="ctrl" id="g-age-daily" onchange="initDaily()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
+      <div id="daily-age-pills" style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="age-pill active" data-age="all" onclick="toggleAgePill(this)">All</button>
+        <button class="age-pill" data-age="U13" onclick="toggleAgePill(this)">U13</button>
+        <button class="age-pill" data-age="U14" onclick="toggleAgePill(this)">U14</button>
+        <button class="age-pill" data-age="U15" onclick="toggleAgePill(this)">U15</button>
+        <button class="age-pill" data-age="U16" onclick="toggleAgePill(this)">U16</button>
+        <button class="age-pill" data-age="U18" onclick="toggleAgePill(this)">U18</button>
+      </div>
       <span class="cl">Date:</span>
       <select class="ctrl" id="g-date" onchange="initDaily()"></select>
       <span class="cl">Pos:</span>
       <select class="ctrl" id="g-pos" onchange="initDaily()"><option value="all">All</option><option value="CB">CB</option><option value="FW">FW</option><option value="FB">FB</option><option value="GK">GK</option><option value="MF">MF</option></select>
+      <button class="export-btn" onclick="exportPDF('page-daily')">⬇ Export PDF</button>
     </div>
   </div>
   <div class="leg-bar">
@@ -238,6 +266,7 @@ tr:last-child td{border-bottom:none}
           <option value="gps">GPS</option>
           <option value="vald">VALD</option>
           <option value="testing">Testing</option>
+          <option value="studio">📊 Chart Studio</option>
         </select>
       </div>
       <!-- GPS filters -->
@@ -324,6 +353,69 @@ tr:last-child td{border-bottom:none}
           </select>
         </div>
       </div>
+      <!-- Studio filters: single flex-wrap container; the date-row div is width:100% so it always starts a new line -->
+      <div id="pc-studio-filters" style="display:none;gap:12px;align-items:flex-start;flex-wrap:wrap">
+        <div>
+          <div class="cl" style="margin-bottom:4px">Players <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#aaa">(Cmd/Ctrl)</span></div>
+          <select class="ctrl" id="pcs-players" multiple size="5" style="min-width:190px;height:auto" onchange="renderPCStudio()"></select>
+        </div>
+        <div>
+          <div class="cl" style="margin-bottom:4px">Chart Type</div>
+          <select class="ctrl" id="pcs-chart" onchange="pcsChartTypeChange()" style="min-width:130px">
+            <option value="bar">Bar</option>
+            <option value="density">Density</option>
+            <option value="scatter">Scatter</option>
+            <option value="box">Box &amp; Whisker</option>
+            <option value="pie">Pie</option>
+          </select>
+        </div>
+        <div>
+          <div class="cl" style="margin-bottom:4px">X Axis</div>
+          <select class="ctrl" id="pcs-x" onchange="renderPCStudio()" style="min-width:200px"></select>
+        </div>
+        <div id="pcs-y-wrap" style="display:none">
+          <div class="cl" style="margin-bottom:4px">Y Axis</div>
+          <select class="ctrl" id="pcs-y" onchange="renderPCStudio()" style="min-width:200px"></select>
+        </div>
+        <div>
+          <div class="cl" style="margin-bottom:4px">Age</div>
+          <select class="ctrl" id="pcs-age" onchange="initPCStudio();renderPCStudio()" style="min-width:90px">
+            <option value="all">All Ages</option>
+            <option value="U13">U13</option>
+            <option value="U14">U14</option>
+            <option value="U15">U15</option>
+            <option value="U16">U16</option>
+            <option value="U18">U18</option>
+          </select>
+        </div>
+        <!-- Full-width date/filter row — width:100% forces a new flex line -->
+        <div style="width:100%;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:8px 10px;background:#f8f8f8;border:1px solid var(--border);border-radius:3px;margin-top:2px">
+          <div>
+            <div class="cl" style="margin-bottom:4px">Season</div>
+            <select class="ctrl" id="pcs-season" onchange="renderPCStudio()" style="min-width:110px">
+              <option value="all">All Seasons</option>
+            </select>
+          </div>
+          <div>
+            <div class="cl" style="margin-bottom:4px">Sessions</div>
+            <select class="ctrl" id="pcs-session" onchange="renderPCStudio()" style="min-width:130px">
+              <option value="all">All Sessions</option>
+              <option value="latest">Latest Only</option>
+            </select>
+          </div>
+          <div>
+            <div class="cl" style="margin-bottom:4px">Date From</div>
+            <input type="date" class="ctrl" id="pcs-date-from" onchange="renderPCStudio()" style="min-width:140px"/>
+          </div>
+          <div>
+            <div class="cl" style="margin-bottom:4px">Date To</div>
+            <input type="date" class="ctrl" id="pcs-date-to" onchange="renderPCStudio()" style="min-width:140px"/>
+          </div>
+          <div>
+            <button class="ctrl" onclick="document.getElementById('pcs-date-from').value='';document.getElementById('pcs-date-to').value='';renderPCStudio();" style="cursor:pointer;margin-top:auto">✕ Clear Dates</button>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- GPS section -->
     <div id="pc-sect-gps">
@@ -344,13 +436,38 @@ tr:last-child td{border-bottom:none}
       <div class="panel sg"><div class="pt" id="pct-title">Testing Comparison</div><div class="cb" style="height:300px"><canvas id="c-pct"></canvas></div></div>
       <div class="panel sg" style="margin-top:8px"><div class="pt ptl">Testing Table</div><div class="tw"><table id="tbl-pct"></table></div></div>
     </div>
+    <!-- Studio section -->
+    <div id="pc-sect-studio" style="display:none">
+      <div class="panel sg">
+        <div class="pt" id="pcs-title">Chart Studio</div>
+        <div id="pcs-legend" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;padding:0 2px;min-height:18px"></div>
+        <div id="pcs-chart-wrap" style="position:relative;height:340px">
+          <canvas id="c-pcs"></canvas>
+          <div id="pcs-svg-wrap" style="display:none"></div>
+        </div>
+      </div>
+      <div class="panel sg" style="margin-top:8px">
+        <div class="pt ptl">Data Summary</div>
+        <div class="tw"><table id="tbl-pcs"></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TRIALIST -->
+<div class="page" id="page-trialist">
+  <div class="main">
+    <div class="ctrl-row"><span class="cl">Player:</span><select class="ctrl" id="tr-cmj-player" onchange="renderTrialistCMJ();renderTrialistMS()"></select><span class="cl">Sessions:</span><select class="ctrl" id="tr-ms-date" onchange="renderTrialistMS()"><option value="latest">Latest</option><option value="all">All</option></select></div>
+    <div id="tr-cmj-dash"></div>
+    <div class="panel sg"><div class="pt ptl">Trialist Movement Scores</div><div class="tw"><table id="tbl-tr-ms"></table></div></div>
+    <div id="tr-ms-bench"></div>
   </div>
 </div>
 
 <!-- MD+/- -->
 <div class="page" id="page-mdpm">
   <div class="main">
-    <div class="ctrl-row"><span class="cl">Age:</span><select class="ctrl" id="mdpm-age" onchange="initMdpm()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select><span class="cl">Player:</span><select class="ctrl" id="mdpm-player"></select><span class="cl">Participation:</span><select class="ctrl" id="mdpm-part" onchange="renderMdpm()"><option value="full">Full Only</option><option value="all">All</option></select></div>
+    <div class="ctrl-row"><span class="cl">Season:</span><select class="ctrl" id="mdpm-season" onchange="renderMdpm()"><option value="all">All Seasons</option></select><span class="cl">Age:</span><select class="ctrl" id="mdpm-age" onchange="initMdpm()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select><span class="cl">Player:</span><select class="ctrl" id="mdpm-player"></select><span class="cl">Participation:</span><select class="ctrl" id="mdpm-part" onchange="renderMdpm()"><option value="full">Full Only</option><option value="all">All</option></select></div>
     <div class="md-chips" id="mdpm-chips"></div>
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:10px;padding:0 2px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:6px">
@@ -374,8 +491,9 @@ tr:last-child td{border-bottom:none}
   <div class="vald-wrap">
     <div class="vald-tb">
       <div style="display:flex;align-items:center;gap:6px"><span class="vl">Name</span><select class="vc" id="vald-player"></select></div>
-      <div class="vtitle">RBNY Academy Testing</div>
+      <div class="vtitle">RBNY Academy — Testing</div>
       <div style="display:flex;align-items:center;gap:6px"><span class="vl">Date range</span><select class="vc" id="vald-date-range" onchange="renderVald()"><option value="all">All Dates</option><option value="latest">Latest only</option><option value="2025">2025</option><option value="2026">2026</option></select></div>
+      <button class="export-btn" onclick="exportPDF('page-vald')">⬇ Export PDF</button>
     </div>
     <div class="vd" id="vald-dash"></div>
   </div>
@@ -402,6 +520,8 @@ tr:last-child td{border-bottom:none}
         <option value="best">Best Ever</option>
         <option value="recent">Most Recent</option>
       </select>
+      <span class="cl">Season:</span>
+      <select class="ctrl" id="test-season" onchange="onTestChange()"><option value="all">All Seasons</option></select>
     </div>
     <div id="test-placeholder" style="background:#fff;border:1px solid var(--border);padding:40px 20px;text-align:center;color:var(--text3)">
       <div style="font-family:var(--font);font-size:22px;font-weight:800;margin-bottom:6px;color:#ccc">SELECT A TEST</div>
@@ -480,6 +600,8 @@ tr:last-child td{border-bottom:none}
 <div class="page" id="page-rank">
   <div class="main">
     <div class="ctrl-row">
+      <span class="cl">Season:</span>
+      <select class="ctrl" id="rank-season" onchange="renderRank()"><option value="all">All Seasons</option></select>
       <span class="cl">Age:</span>
       <select class="ctrl" id="rank-age" onchange="renderRank()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
       <span class="cl">Rank by:</span>
@@ -494,6 +616,54 @@ tr:last-child td{border-bottom:none}
       </select>
     </div>
     <div class="tw"><table id="tbl-rank"></table></div>
+  </div>
+</div>
+
+<!-- PHV -->
+<div class="page" id="page-phv">
+  <div class="main">
+    <div class="ctrl-row" style="flex-wrap:wrap;gap:8px">
+      <span class="cl">Player:</span>
+      <select class="ctrl" id="phv-player" onchange="renderPHV()"><option value="all">All Players</option></select>
+      <span class="cl">Age Group:</span>
+      <select class="ctrl" id="phv-team" onchange="renderPHV()"><option value="all">All Groups</option></select>
+      <span class="cl">Session:</span>
+      <select class="ctrl" id="phv-session" onchange="renderPHV()"><option value="latest">Latest Only</option><option value="all">All Sessions</option></select>
+    </div>
+    <div class="ctrl-row" style="flex-wrap:wrap;gap:8px;align-items:center">
+      <span class="cl">Bio Age:</span>
+      <input type="number" class="ctrl" id="phv-bio-min" placeholder="Min" step="0.1" style="width:70px" onchange="renderPHV()">
+      <span style="font-size:11px;color:var(--text3)">–</span>
+      <input type="number" class="ctrl" id="phv-bio-max" placeholder="Max" step="0.1" style="width:70px" onchange="renderPHV()">
+      <span class="cl" style="margin-left:6px">Growth %:</span>
+      <input type="number" class="ctrl" id="phv-grw-min" placeholder="Min" step="1" style="width:70px" onchange="renderPHV()">
+      <span style="font-size:11px;color:var(--text3)">–</span>
+      <input type="number" class="ctrl" id="phv-grw-max" placeholder="Max" step="1" style="width:70px" onchange="renderPHV()">
+      <button class="ctrl" onclick="phvClearFilters()" style="cursor:pointer">✕ Clear</button>
+    </div>
+    <!-- Stage legend -->
+    <div class="leg-bar" style="margin-bottom:8px">
+      <span style="font-size:11px;font-weight:700;color:var(--text2);margin-right:4px">Maturity</span>
+      <div class="li"><div class="ld" style="background:#0055cc"></div>Pre-PHV (&lt; −1)</div>
+      <div class="li"><div class="ld" style="background:#ff9500"></div>Circum-PHV (−1 to +1)</div>
+      <div class="li"><div class="ld" style="background:#007a30"></div>Post-PHV (&gt; +1)</div>
+    </div>
+    <!-- KPI chips -->
+    <div id="phv-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px"></div>
+    <!-- Charts row -->
+    <div class="pg g2 sg">
+      <div class="panel"><div class="pt">PHV Offset by Player</div><div class="cb-lg"><canvas id="c-phv-offset"></canvas></div></div>
+      <div class="panel"><div class="pt">Maturity Stage Distribution</div><div class="cb-lg"><canvas id="c-phv-dist"></canvas></div></div>
+    </div>
+    <div class="pg g2 sg">
+      <div class="panel"><div class="pt">Biological Age vs Chronological Age</div><div class="cb-lg"><canvas id="c-phv-age"></canvas></div></div>
+      <div class="panel" id="phv-height-panel"><div class="pt">Current Height vs Predicted Adult Height (in)</div><div class="cb-lg"><canvas id="c-phv-height"></canvas></div></div>
+    </div>
+    <!-- Squad table -->
+    <div class="panel sg">
+      <div class="pt ptl">Squad PHV Data</div>
+      <div class="tw"><table id="tbl-phv"></table></div>
+    </div>
   </div>
 </div>
 
@@ -520,6 +690,8 @@ tr:last-child td{border-bottom:none}
 const API='';
 let PLAYERS=[],GPS={},PM={},AM={},LATEST={},MATCH_LIST=[],TEAM_WEEKLY={},WEEK_KEYS=[];
 let CMJ={},NB={},VALD={},SPRINT={},T505={},BROAD={},MAS_DATA={},MS_DATA={};
+let TRIALIST_CMJ={},TRIALIST_MS={};
+let PHV_DATA={};
 const MS_LOCAL=[];
 
 // ── ISO WEEK HELPERS ──────────────────────────────────────────────
@@ -541,6 +713,37 @@ function isoWeekStart(year, week) {
   return new Date(week1Mon.getTime() + (week - 1) * 7 * 86400000);
 }
 
+// ── SEASON HELPERS ────────────────────────────────────────────────
+// Season runs Aug–Jun: Jul-Dec of year Y → "Y-(Y+1)", Jan-Jun of year Y → "(Y-1)-Y"
+function dateToSeason(dateStr){
+  const d=parseDate(dateStr);if(!d||isNaN(d))return null;
+  const y=d.getFullYear(),m=d.getMonth()+1;
+  const sy=m>=7?y:y-1;
+  return`${sy}-${String(sy+1).slice(2)}`;
+}
+function inSeason(dateStr,season){
+  if(!season||season==='all')return true;
+  return dateToSeason(dateStr)===season;
+}
+function populateSeasonDropdowns(){
+  const dates=[];
+  Object.values(GPS).forEach(arr=>arr.forEach(s=>s.date&&dates.push(s.date)));
+  [SPRINT,T505,BROAD,CMJ,NB,MAS_DATA].forEach(obj=>Object.values(obj).forEach(arr=>arr&&arr.forEach(r=>r.date&&dates.push(r.date))));
+  Object.values(VALD).forEach(arr=>arr&&arr.forEach(r=>r.date&&dates.push(r.date)));
+  const found=new Set(dates.map(d=>dateToSeason(d)).filter(Boolean));
+  // Always include known seasons so the dropdown is never empty
+  ['2023-24','2024-25','2025-26','2026-27'].forEach(s=>found.add(s));
+  const seasons=[...found].sort().reverse();
+  const currentSeason=dateToSeason(new Date().toISOString().slice(0,10))||'2025-26';
+  const defaultSeason=seasons.includes(currentSeason)?currentSeason:seasons[0];
+  ['mdpm-season','test-season','rank-season','pcs-season'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    sel.innerHTML='<option value="all">All Seasons</option>';
+    seasons.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
+    sel.value=defaultSeason;
+  });
+}
+
 // ── HELPERS ───────────────────────────────────────────────────────
 const CH={};
 function avg(arr){const v=arr.filter(x=>x!=null&&!isNaN(x));return v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):0;}
@@ -550,13 +753,18 @@ function mkBarM(id,labels,data,colors,bgs){const c=document.getElementById(id);i
 function mkBarLine(id,labels,bars,line,color){const c=document.getElementById(id);if(!c)return;if(CH[id])CH[id].destroy();CH[id]=new Chart(c,{type:'bar',data:{labels,datasets:[{type:'bar',data:bars,backgroundColor:color+'44',borderColor:color,borderWidth:1,borderRadius:2},{type:'line',data:line,borderColor:'#ff9500',borderWidth:2,borderDash:[4,3],pointRadius:0,fill:false}]},options:bOpt()});}
 function mkGrpBar(id,labels,datasets){const c=document.getElementById(id);if(!c)return;if(CH[id])CH[id].destroy();CH[id]=new Chart(c,{type:'bar',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#333',font:{size:8,weight:'700'},clip:false,formatter:v=>v==null?'':+(v%1===0?v.toFixed(0):v.toFixed(1))}},scales:{x:{ticks:{font:{size:9},maxRotation:45},grid:{display:false}},y:{ticks:{font:{size:9}},grid:{color:'#f0f0f0'},beginAtZero:true}}},plugins:[ChartDataLabels]});}
 function mkCMJ(id,labels,heights,rsis){const c=document.getElementById(id);if(!c)return;if(CH[id])CH[id].destroy();CH[id]=new Chart(c,{type:'bar',data:{labels,datasets:[{label:'Height',type:'bar',data:heights,backgroundColor:'#44444488',borderColor:'#444',borderWidth:1,borderRadius:2,yAxisID:'y'},{label:'RSI-mod',type:'line',data:rsis,borderColor:'#cc0000',borderWidth:2,backgroundColor:'transparent',pointBackgroundColor:'#cc0000',pointRadius:5,pointHoverRadius:7,tension:0.3,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:22,bottom:16}},plugins:{legend:{display:false},datalabels:{display:true,anchor:ctx=>ctx.datasetIndex===1?'start':'end',align:ctx=>ctx.datasetIndex===1?'bottom':'top',font:{size:8,weight:'700'},color:ctx=>ctx.datasetIndex===1?'#cc0000':'#555',formatter:(v,ctx)=>v==null?'':ctx.datasetIndex===1?v.toFixed(3):v.toFixed(1)}},scales:{x:{ticks:{font:{size:9},maxRotation:45},grid:{display:false}},y:{ticks:{font:{size:9}},position:'left'},y2:{ticks:{font:{size:9}},position:'right',grid:{display:false}}}},plugins:[ChartDataLabels]});}
+// ── VALD chart helpers (larger fonts for readability) ──────────────────
+function vBOpt(){return{responsive:true,maintainAspectRatio:false,layout:{padding:{top:36}},plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:13},maxRotation:45},grid:{display:false}},y:{ticks:{font:{size:13}},grid:{color:'#f0f0f0'}}}};}
+function mkValdBar(id,labels,data,color,bg){const c=document.getElementById(id);if(!c)return;if(CH[id])CH[id].destroy();const opts=vBOpt();opts.plugins.datalabels={anchor:'end',align:'top',color:'#222',font:{size:14,weight:'700'},clip:false,formatter:v=>v==null?'':typeof v==='number'?+(v%1===0?v.toFixed(0):v.toFixed(2)):v};CH[id]=new Chart(c,{type:'bar',data:{labels,datasets:[{data,backgroundColor:bg||color+'44',borderColor:color,borderWidth:1,borderRadius:3}]},options:opts,plugins:[ChartDataLabels]});}
+function mkValdGrpBar(id,labels,datasets){const c=document.getElementById(id);if(!c)return;if(CH[id])CH[id].destroy();CH[id]=new Chart(c,{type:'bar',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:36}},plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#222',font:{size:14,weight:'700'},clip:false,formatter:v=>v==null?'':+(v%1===0?v.toFixed(0):v.toFixed(1))}},scales:{x:{ticks:{font:{size:13},maxRotation:45},grid:{display:false}},y:{ticks:{font:{size:13}},grid:{color:'#f0f0f0'},beginAtZero:true}}},plugins:[ChartDataLabels]});}
+function mkValdCMJ(id,labels,heights,rsis){const c=document.getElementById(id);if(!c)return;if(CH[id])CH[id].destroy();CH[id]=new Chart(c,{type:'bar',data:{labels,datasets:[{label:'Height',type:'bar',data:heights,backgroundColor:'#44444488',borderColor:'#444',borderWidth:1,borderRadius:3,yAxisID:'y'},{label:'RSI-mod',type:'line',data:rsis,borderColor:'#cc0000',borderWidth:2,backgroundColor:'transparent',pointBackgroundColor:'#cc0000',pointRadius:6,pointHoverRadius:8,tension:0.3,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:36,bottom:16}},plugins:{legend:{display:false},datalabels:{display:true,anchor:ctx=>ctx.datasetIndex===1?'start':'end',align:ctx=>ctx.datasetIndex===1?'bottom':'top',font:{size:14,weight:'700'},color:ctx=>ctx.datasetIndex===1?'#cc0000':'#444',formatter:(v,ctx)=>v==null?'':ctx.datasetIndex===1?v.toFixed(3):v.toFixed(1)}},scales:{x:{ticks:{font:{size:13},maxRotation:45},grid:{display:false}},y:{ticks:{font:{size:13}},position:'left'},y2:{ticks:{font:{size:13}},position:'right',grid:{display:false}}}},plugins:[ChartDataLabels]});}
 function ageBadge(a){return`<span class="badge bgy">${a||'?'}</span>`;}
 function posBadge(p){const cols={CB:'#b0b0b0',FW:'#e8a0a8',FB:'#444',GK:'#1a1a1a',MF:'#cc0000'};return`<span class="badge" style="background:${cols[p]||'#888'}22;color:${cols[p]||'#888'};border:1px solid ${cols[p]||'#888'}44">${p||'?'}</span>`;}
 function rpill(v){const c=v>=5?'#007a30':v>=4?'#5a9000':v>=3?'#d4a000':v>=2?'#e05000':'#cc0000';return`<span class="rpill" style="background:${c}">${v||'—'}</span>`;}
 function rcol(v){return v>=5?'#007a30':v>=4?'#5a9000':v>=3?'#d4a000':v>=2?'#e05000':'#cc0000';}
 const PC={CB:'#b0b0b0',FW:'#e8a0a8',FB:'#444',GK:'#1a1a1a',MF:'#cc0000'};
-const PCOLORS=['#cc0000','#1a1a1a','#007a30','#ff9500','#0055cc'];
-const MC={dist:{c:'#cc0000',bg:'rgba(204,0,0,0.18)'},dpm:{c:'#990000',bg:'rgba(153,0,0,0.18)'},hsr:{c:'#444',bg:'rgba(68,68,68,0.18)'},vhsr:{c:'#880000',bg:'rgba(136,0,0,0.18)'},sprint:{c:'#444',bg:'rgba(68,68,68,0.18)'},expl:{c:'#cc0000',bg:'rgba(204,0,0,0.18)'},maxspd:{c:'#990000',bg:'rgba(153,0,0,0.18)'},acc:{c:'#cc0000',bg:'rgba(204,0,0,0.18)'},dec:{c:'#444',bg:'rgba(68,68,68,0.18)'}};
+const PCOLORS=['#cc0000','#0055cc','#007a30','#ff9500','#9b59b6','#1a1a1a','#00b4d8','#e67e22','#16a085','#e91e63','#f06292','#8d6e63','#43a047','#5c6bc0','#fdd835','#26a69a','#ef5350','#7e57c2','#66bb6a','#ff7043','#29b6f6','#ab47bc','#d4e157','#ec407a','#26c6da','#ff8f00','#6d4c41','#00897b','#3949ab','#c0ca33'];
+const MC={dist:{c:'#cc0000',bg:'rgba(204,0,0,0.45)'},dpm:{c:'#990000',bg:'rgba(153,0,0,0.45)'},hsr:{c:'#444444',bg:'rgba(68,68,68,0.45)'},vhsr:{c:'#880000',bg:'rgba(136,0,0,0.45)'},sprint:{c:'#1a1a1a',bg:'rgba(26,26,26,0.45)'},expl:{c:'#bb0000',bg:'rgba(187,0,0,0.45)'},maxspd:{c:'#666666',bg:'rgba(102,102,102,0.45)'},acc:{c:'#770000',bg:'rgba(119,0,0,0.45)'},dec:{c:'#333333',bg:'rgba(51,51,51,0.45)'}};
 const MD_DAYS=['MD-5','MD-4','MD-3','MD-2','MD-1','MD','MD+1'];
 const METRICS=['dist','dpm','hsr','vhsr','sprint','expl','maxspd','acc','dec'];
 
@@ -567,7 +775,7 @@ function hideLoader(){document.getElementById('loader-overlay').style.display='n
 async function loadAllData(){
   showLoader();
   try{
-    const [gpsR,cmjR,nbR,hipR,spR,t5R,brR,maR,moR]=await Promise.allSettled([
+    const [gpsR,cmjR,nbR,hipR,spR,t5R,brR,maR,moR,trR,phvR]=await Promise.allSettled([
       fetch(API+'/api/gps').then(r=>r.json()),
       fetch(API+'/api/cmj').then(r=>r.json()),
       fetch(API+'/api/nordbord').then(r=>r.json()),
@@ -577,6 +785,8 @@ async function loadAllData(){
       fetch(API+'/api/broad').then(r=>r.json()),
       fetch(API+'/api/mas').then(r=>r.json()),
       fetch(API+'/api/movement').then(r=>r.json()),
+      fetch(API+'/api/trialist').then(r=>r.json()),
+      fetch(API+'/api/phv').then(r=>r.json()),
     ]);
     if(gpsR.status==='fulfilled'&&!gpsR.value?.error){const d=gpsR.value;PLAYERS=(d.players||[]).sort((a,b)=>a.localeCompare(b));GPS=d.gps||{};PM=d.pos_map||{};AM=d.age_map||{};LATEST=d.latest||{};MATCH_LIST=d.match_list||[];TEAM_WEEKLY=d.team_weekly||{};WEEK_KEYS=d.week_keys||[];}
     if(cmjR.status==='fulfilled'&&!cmjR.value?.error) CMJ=cmjR.value;
@@ -587,6 +797,8 @@ async function loadAllData(){
     if(brR.status==='fulfilled'&&!brR.value?.error) BROAD=brR.value;
     if(maR.status==='fulfilled'&&!maR.value?.error) MAS_DATA=maR.value;
     if(moR.status==='fulfilled'&&!moR.value?.error) MS_DATA=moR.value;
+    if(trR.status==='fulfilled'&&!trR.value?.error){TRIALIST_CMJ=trR.value.cmj||{};TRIALIST_MS=trR.value.movement||{};}
+    if(phvR.status==='fulfilled'&&!phvR.value?.error) PHV_DATA=phvR.value;
     document.getElementById('last-updated').textContent='Updated: '+new Date().toLocaleTimeString();
   }catch(err){
     document.getElementById('loader-overlay').innerHTML=`<div style="text-align:center;color:#fff"><div style="font-size:18px;font-weight:700;margin-bottom:8px">⚠ Could not load data</div><div style="font-size:13px;opacity:.7">${err.message}</div><button onclick="loadAllData()" style="margin-top:14px;padding:8px 20px;background:#cc0000;color:#fff;border:none;border-radius:3px;cursor:pointer;font-weight:700">Retry</button></div>`;
@@ -594,12 +806,13 @@ async function loadAllData(){
   }
   hideLoader();
   setupDateFilter();
+  populateSeasonDropdowns();
   initDaily();DONE['daily']=true;
 }
 
 // ── NAV ───────────────────────────────────────────────────────────
 const DONE={};
-const INITS={daily:initDaily,matchday:initMatchday,teamperday:initTeamPerDay,teamweek:initTeamweek,playerday:initPlayerday,playerweek:initPlayerweek,playercompare:initPlayerCompare,mdpm:initMdpm,vald:initVald,testing:initTesting,movement:initMovement,rank:initRankings};
+const INITS={daily:initDaily,matchday:initMatchday,teamperday:initTeamPerDay,teamweek:initTeamweek,playerday:initPlayerday,playerweek:initPlayerweek,playercompare:initPlayerCompare,mdpm:initMdpm,vald:initVald,testing:initTesting,movement:initMovement,rank:initRankings,trialist:initTrialist,phv:initPHV};
 document.querySelectorAll('.nav-tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById('page-'+t.dataset.p).classList.add('active');const p=t.dataset.p;if(p==='playercompare'){initPlayerCompare();}else if(!DONE[p]){DONE[p]=true;INITS[p]&&INITS[p]();}});});
 document.querySelectorAll('.mst').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.mst').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.msp').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById('ms-'+t.dataset.ms).classList.add('active');});});
 function populateDropdown(id){
@@ -611,9 +824,11 @@ function pAge(p){return AM[p]||(CMJ[p]||[])[0]?.age||(NB[p]||[])[0]?.age||(VALD[
 
 // ── DATE FILTER ───────────────────────────────────────────────────
 function parseDate(s){
-  if(!s)return new Date(0);
+  if(!s&&s!==0)return new Date(0);
+  if(typeof s==='number')return new Date((s-25569)*86400000);
   if(s.includes('-'))return new Date(s);
   const[m,d,y]=s.split('/');
+  if(!y)return new Date(0);
   return new Date(+y<100?2000+ +y:+y,+m-1,+d);
 }
 function setupDateFilter(){
@@ -627,14 +842,29 @@ function setupDateFilter(){
 }
 
 // ── DAILY ─────────────────────────────────────────────────────────
+function toggleAgePill(btn){
+  const pills=[...document.querySelectorAll('#daily-age-pills .age-pill')];
+  if(btn.dataset.age==='all'){
+    pills.forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+  } else {
+    pills.find(p=>p.dataset.age==='all')?.classList.remove('active');
+    btn.classList.toggle('active');
+    if(!pills.some(p=>p.classList.contains('active'))){
+      pills.find(p=>p.dataset.age==='all')?.classList.add('active');
+    }
+  }
+  initDaily();
+}
 function initDaily(){
   setupDateFilter();
   const selDate=document.getElementById('g-date').value;
   const pos=document.getElementById('g-pos').value;
-  const ageF=document.getElementById('g-age-daily')?.value||'all';
+  const activePills=[...document.querySelectorAll('#daily-age-pills .age-pill.active')].map(b=>b.dataset.age);
+  const ageAll=activePills.length===0||activePills.includes('all');
   let data=[];
   PLAYERS.forEach(p=>{const sess=(GPS[p]||[]).find(s=>s.date===selDate&&s.dist);if(sess)data.push({...sess,player:p,pos:PM[p]||'MF'});});
-  if(ageF!=='all')data=data.filter(d=>pAge(d.player)===ageF);
+  if(!ageAll)data=data.filter(d=>activePills.includes(pAge(d.player)));
   if(pos!=='all')data=data.filter(d=>d.pos===pos);
   if(!data.length){data=Object.values(LATEST).filter(d=>d.dist);if(pos!=='all')data=data.filter(d=>d.pos===pos);}
   data=data.filter(d=>d.dist).sort((a,b)=>b.dist-a.dist);
@@ -846,13 +1076,14 @@ function renderPlayerWeek(){
 // ── PLAYER COMPARE ────────────────────────────────────────────────
 function pcDtypeChange(){
   const dt=document.getElementById('pc-dtype').value;
-  ['gps','vald','testing'].forEach(t=>{
-    document.getElementById('pc-'+t+'-filters').style.display=dt===t?'flex':'none';
+  ['gps','vald','testing','studio'].forEach(t=>{
+    const el=document.getElementById('pc-'+t+'-filters');if(el)el.style.display=dt===t?(t==='studio'?'flex':'flex'):'none';
     document.getElementById('pc-sect-'+t).style.display=dt===t?'':'none';
   });
   if(dt==='gps')renderPlayerCompare();
   else if(dt==='vald')renderPCVald();
   else if(dt==='testing')renderPCTesting();
+  else if(dt==='studio')renderPCStudio();
 }
 function initPlayerCompare(){
   const pSel=document.getElementById('pc-players');
@@ -885,6 +1116,7 @@ function initPlayerCompare(){
     const o=document.createElement('option');o.value=p;o.textContent=p;
     if(prevPT.includes(p))o.selected=true;ptSel.appendChild(o);
   });
+  initPCStudio();
   pcDtypeChange();
 }
 function renderPlayerCompare(){
@@ -989,6 +1221,295 @@ function renderPCTesting(){
     sorted.map((d,i)=>`<tr><td style="font-family:var(--font);font-weight:800;color:${i<3?'#cc0000':'#999'}">${i+1}</td><td style="font-weight:700;border-left:4px solid ${d.color};padding-left:8px">${d.player}</td><td>${posBadge(PM[d.player]||'?')}</td><td>${ageBadge(pAge(d.player)||'?')}</td><td style="font-family:var(--font);font-size:16px;font-weight:800;color:${d.color}">${typeof d.val==='number'?+(d.val%1===0?d.val.toFixed(0):d.val.toFixed(3)):d.val}${lowerBetter?'s':''}</td></tr>`).join('')+'</tbody>';
 }
 
+// ── CHART STUDIO ──────────────────────────────────────────────────
+const PCS_METRICS=[
+  {v:'gps-dist',l:'Distance (m)',g:'GPS',src:'gps',f:'dist'},
+  {v:'gps-dpm',l:'Dist / Min',g:'GPS',src:'gps',f:'dpm'},
+  {v:'gps-hsr',l:'HSR (m)',g:'GPS',src:'gps',f:'hsr'},
+  {v:'gps-vhsr',l:'VHSR (m)',g:'GPS',src:'gps',f:'vhsr'},
+  {v:'gps-sprint',l:'Sprint (m)',g:'GPS',src:'gps',f:'sprint'},
+  {v:'gps-expl',l:'Explosive (m)',g:'GPS',src:'gps',f:'expl'},
+  {v:'gps-maxspd',l:'Max Speed (m/s)',g:'GPS',src:'gps',f:'maxspd'},
+  {v:'gps-acc',l:'Accelerations',g:'GPS',src:'gps',f:'acc'},
+  {v:'gps-dec',l:'Decelerations',g:'GPS',src:'gps',f:'dec'},
+  {v:'gps-mins',l:'Session Length (min)',g:'GPS',src:'gps',f:'mins'},
+  {v:'cmj-height',l:'CMJ Height (cm)',g:'VALD',src:'cmj',f:'height'},
+  {v:'cmj-rsi',l:'CMJ RSI-mod',g:'VALD',src:'cmj',f:'rsi'},
+  {v:'cmj-power',l:'CMJ Power/BM',g:'VALD',src:'cmj',f:'power'},
+  {v:'nb-lMax',l:'NordBord Left (N)',g:'VALD',src:'nb',f:'lMax'},
+  {v:'nb-rMax',l:'NordBord Right (N)',g:'VALD',src:'nb',f:'rMax'},
+  {v:'nb-bilateral',l:'NordBord Bilateral Avg (N)',g:'VALD',src:'nb',f:'bilateral'},
+  {v:'hip-abd-lMax',l:'Hip Abduction Left (N)',g:'VALD',src:'hip-abd',f:'lMax'},
+  {v:'hip-abd-rMax',l:'Hip Abduction Right (N)',g:'VALD',src:'hip-abd',f:'rMax'},
+  {v:'hip-abd-bilateral',l:'Hip Abduction Bilateral (N)',g:'VALD',src:'hip-abd',f:'bilateral'},
+  {v:'hip-add-lMax',l:'Hip Adduction Left (N)',g:'VALD',src:'hip-add',f:'lMax'},
+  {v:'hip-add-rMax',l:'Hip Adduction Right (N)',g:'VALD',src:'hip-add',f:'rMax'},
+  {v:'hip-add-bilateral',l:'Hip Adduction Bilateral (N)',g:'VALD',src:'hip-add',f:'bilateral'},
+  {v:'sprint-total',l:'Sprint Total (s)',g:'Testing',src:'sprint',f:'total'},
+  {v:'sprint-split1',l:'Sprint 0-10m (s)',g:'Testing',src:'sprint',f:'split1'},
+  {v:'sprint-split2',l:'Sprint 10-20m (s)',g:'Testing',src:'sprint',f:'split2'},
+  {v:'sprint-split3',l:'Sprint 20-30m (s)',g:'Testing',src:'sprint',f:'split3'},
+  {v:'t505-time',l:'5-0-5 Time (s)',g:'Testing',src:'t505',f:'time'},
+  {v:'broad-dist',l:'Broad Jump (cm)',g:'Testing',src:'broad',f:'dist'},
+  {v:'mas-mas',l:'MAS Score',g:'Testing',src:'mas',f:'mas'},
+  {v:'mas-distance',l:'MAS Distance (m)',g:'Testing',src:'mas',f:'distance'},
+  {v:'phv-weight',l:'Weight (lb)',g:'PHV',src:'phv',f:'weight'},
+  {v:'phv-weightChg',l:'Weight Change (lb)',g:'PHV',src:'phv',f:'weightChg'},
+  {v:'phv-height',l:'Standing Height (in)',g:'PHV',src:'phv',f:'height'},
+  {v:'phv-heightChg',l:'Height Change (in)',g:'PHV',src:'phv',f:'heightChg'},
+  {v:'phv-adultHeight',l:'Adult Height (in)',g:'PHV',src:'phv',f:'adultHeight'},
+  {v:'phv-phv',l:'PHV Offset',g:'PHV',src:'phv',f:'phv'},
+  {v:'phv-growthPct',l:'Growth %',g:'PHV',src:'phv',f:'growthPct'},
+];
+
+function pcsPopulateMetrics(){
+  ['pcs-x','pcs-y'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel||sel.options.length>0)return;
+    const grps={};
+    PCS_METRICS.forEach(m=>{if(!grps[m.g])grps[m.g]=[];grps[m.g].push(m);});
+    Object.entries(grps).forEach(([grp,metrics])=>{
+      const og=document.createElement('optgroup');og.label=grp;
+      metrics.forEach(m=>{const o=document.createElement('option');o.value=m.v;o.textContent=m.l;og.appendChild(o);});
+      sel.appendChild(og);
+    });
+  });
+  const yEl=document.getElementById('pcs-y');
+  if(yEl&&yEl.options.length>0&&!yEl.value)yEl.value='gps-hsr';
+}
+
+function pcsGetValues(player,metricVal,seasonF,sessionF,dateFrom,dateTo){
+  const m=PCS_METRICS.find(x=>x.v===metricVal);if(!m)return[];
+  const{src,f}=m;
+  const dn=s=>String(s||'').trim().toLowerCase();
+  const dfrom=dateFrom?new Date(dateFrom):null;
+  const dto=dateTo?(()=>{const d=new Date(dateTo);d.setHours(23,59,59);return d;})():null;
+  function fs(arr){let a=[...arr];if(seasonF&&seasonF!=='all')a=a.filter(r=>inSeason(r.date,seasonF));if(dfrom)a=a.filter(r=>parseDate(r.date)>=dfrom);if(dto)a=a.filter(r=>parseDate(r.date)<=dto);if(sessionF==='latest')a=a.length?[a[a.length-1]]:[];return a;}
+  if(src==='gps'){return fs((pcsLookup(GPS,player)||[]).filter(s=>s.dist&&s[f]!=null)).map(s=>({v:s[f],date:s.date}));}
+  if(src==='cmj'){return fs((pcsLookup(CMJ,player)||[]).filter(r=>r[f]!=null)).map(r=>({v:r[f],date:r.date}));}
+  if(src==='nb'){return fs(pcsLookup(NB,player)||[]).map(r=>{const v=f==='bilateral'?+((r.lMax||0)+(r.rMax||0)).toFixed(1)/2:r[f];return v!=null?{v,date:r.date}:null;}).filter(Boolean);}
+  if(src==='hip-abd'||src==='hip-add'){const dir=src==='hip-abd'?'pull':'squeeze';return fs((pcsLookup(VALD,player)||[]).filter(r=>dn(r.direction)===dir&&(r.lMax>0||r.rMax>0))).map(r=>{const v=f==='bilateral'?+((r.lMax||0)+(r.rMax||0)).toFixed(1)/2:r[f];return(v!=null&&v>0)?{v:+v.toFixed(1),date:r.date}:null;}).filter(Boolean);}
+  if(src==='sprint'){return fs((pcsLookup(SPRINT,player)||[]).filter(r=>r[f]!=null)).map(r=>({v:r[f],date:r.date}));}
+  if(src==='t505'){return fs((pcsLookup(T505,player)||[]).filter(r=>r.time!=null)).map(r=>({v:r.time,date:r.date}));}
+  if(src==='broad'){return fs((pcsLookup(BROAD,player)||[]).filter(r=>r.dist!=null)).map(r=>({v:r.dist,date:r.date}));}
+  if(src==='mas'){return fs((pcsLookup(MAS_DATA,player)||[]).filter(r=>r[f]!=null)).map(r=>({v:r[f],date:r.date}));}
+  if(src==='phv'){return fs((pcsLookup(PHV_DATA,player)||[]).filter(r=>r[f]!=null)).map(r=>({v:r[f],date:r.date}));}
+  return[];
+}
+
+function pcsAllPlayers(ageF){
+  // Build a Map keyed by lowercase name. Process non-GPS first, then GPS last so GPS casing wins.
+  const canon=new Map();
+  [CMJ,NB,VALD,SPRINT,T505,BROAD,MAS_DATA,PHV_DATA].forEach(src=>{
+    Object.keys(src).forEach(name=>{const k=name.toLowerCase();if(!canon.has(k))canon.set(k,name);});
+  });
+  // GPS overwrites — its casing is canonical
+  Object.keys(GPS).forEach(name=>{canon.set(name.toLowerCase(),name);});
+  let p=[...canon.values()].sort((a,b)=>a.localeCompare(b));
+  if(ageF&&ageF!=='all')p=p.filter(x=>pAge(x)===ageF);
+  return p;
+}
+function pcsLookup(src,name){
+  // Always do the full scan — never early-return — so we merge ALL case-variant keys
+  const k=name.toLowerCase();
+  const keys=Object.keys(src).filter(n=>n.toLowerCase()===k);
+  if(!keys.length)return[];
+  return keys.flatMap(m=>src[m]||[]);
+}
+
+function initPCStudio(){
+  pcsPopulateMetrics();
+  const ageF=document.getElementById('pcs-age')?.value||'all';
+  const pSel=document.getElementById('pcs-players');
+  const prev=[...pSel.selectedOptions].map(o=>o.value);
+  pSel.innerHTML='';
+  pcsAllPlayers(ageF).forEach(p=>{
+    const o=document.createElement('option');o.value=p;
+    o.textContent=`${p}${PM[p]?' ('+PM[p]+')':pAge(p)?' ('+pAge(p)+')':''}`;
+    if(prev.includes(p))o.selected=true;
+    pSel.appendChild(o);
+  });
+}
+
+function pcsChartTypeChange(){
+  const ct=document.getElementById('pcs-chart').value;
+  document.getElementById('pcs-y-wrap').style.display=ct==='scatter'?'':'none';
+  renderPCStudio();
+}
+
+// ── Stats helpers ─────────────────────────────────────────────────
+function pcsStd(arr){const n=arr.length;if(!n)return 0;const mean=arr.reduce((a,b)=>a+b,0)/n;return Math.sqrt(arr.reduce((s,x)=>s+(x-mean)**2,0)/n)||1;}
+function pcsKDE(vals){
+  if(!vals.length)return{xs:[],ys:[]};
+  const n=vals.length,h=Math.max(1.06*pcsStd(vals)*Math.pow(n,-0.2),0.001);
+  const mn=Math.min(...vals),mx=Math.max(...vals),rng=mx-mn||1;
+  const pts=120,xs=[],ys=[];
+  for(let i=0;i<=pts;i++){const x=(mn-rng*0.25)+(rng*1.5*i/pts);const y=vals.reduce((s,v)=>s+Math.exp(-0.5*((x-v)/h)**2),0)/(n*h*Math.sqrt(2*Math.PI));xs.push(+x.toFixed(4));ys.push(+y.toFixed(7));}
+  return{xs,ys};
+}
+function pcsBoxStats(arr){
+  if(!arr.length)return null;
+  const s=[...arr].sort((a,b)=>a-b),n=s.length;
+  const q1=s[Math.floor(n*0.25)],q3=s[Math.floor(n*0.75)];
+  const median=n%2===0?(s[n/2-1]+s[n/2])/2:s[Math.floor(n/2)];
+  const iqr=q3-q1,lo=q1-1.5*iqr,hi=q3+1.5*iqr;
+  const whiskerLow=s.find(v=>v>=lo)??s[0],whiskerHigh=[...s].reverse().find(v=>v<=hi)??s[n-1];
+  const outliers=s.filter(v=>v<lo||v>hi);
+  const mean=+(arr.reduce((a,b)=>a+b,0)/n).toFixed(3);
+  return{min:s[0],q1,median,q3,max:s[n-1],iqr,whiskerLow,whiskerHigh,outliers,mean,n};
+}
+
+function renderPCStudio(){
+  const chartType=document.getElementById('pcs-chart')?.value||'bar';
+  const xMetric=document.getElementById('pcs-x')?.value;
+  const yMetric=document.getElementById('pcs-y')?.value;
+  const seasonF=document.getElementById('pcs-season')?.value||'all';
+  const sessionF=document.getElementById('pcs-session')?.value||'all';
+  const dateFrom=document.getElementById('pcs-date-from')?.value||'';
+  const dateTo=document.getElementById('pcs-date-to')?.value||'';
+  const selected=[...document.getElementById('pcs-players').selectedOptions].map(o=>o.value);
+  if(!selected.length||!xMetric)return;
+  document.getElementById('pcs-y-wrap').style.display=chartType==='scatter'?'':'none';
+  const xMeta=PCS_METRICS.find(m=>m.v===xMetric);
+  const yMeta=PCS_METRICS.find(m=>m.v===yMetric);
+  // Build per-player data, then filter out anyone with no X values
+  const allPlayerData=selected.map((player,i)=>({player,color:PCOLORS[i%PCOLORS.length],xVals:pcsGetValues(player,xMetric,seasonF,sessionF,dateFrom,dateTo),yVals:chartType==='scatter'?pcsGetValues(player,yMetric,seasonF,sessionF,dateFrom,dateTo):[]}));
+  const playerData=allPlayerData.filter(d=>d.xVals.some(x=>x.v!=null&&!isNaN(x.v)&&x.v!==0));
+  if(!playerData.length){
+    document.getElementById('pcs-legend').innerHTML='<span style="font-size:11px;color:#aaa">No data for selected players / metric / filters</span>';
+    const wrap=document.getElementById('pcs-chart-wrap');const svgWrap=document.getElementById('pcs-svg-wrap');const canvas=document.getElementById('c-pcs');
+    canvas.style.display='none';svgWrap.style.display='block';wrap.style.height='auto';
+    svgWrap.innerHTML='<div style="padding:40px;text-align:center;color:#bbb;font-family:var(--font);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">No data found — try adjusting filters or selecting different players</div>';
+    document.getElementById('tbl-pcs').innerHTML='';return;
+  }
+  const typeLabel={bar:'Bar',density:'Density',scatter:'Scatter',box:'Box & Whisker',pie:'Pie'};
+  document.getElementById('pcs-title').textContent=chartType==='scatter'?`${xMeta?.l||xMetric} vs ${yMeta?.l||yMetric}`:`${xMeta?.l||xMetric} — ${typeLabel[chartType]||chartType}`;
+  const skipped=allPlayerData.filter(d=>d.xVals.length===0).map(d=>d.player);
+  document.getElementById('pcs-legend').innerHTML=
+    playerData.map(d=>`<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#555"><div style="width:10px;height:10px;background:${d.color};border-radius:2px;flex-shrink:0"></div>${d.player}</div>`).join('')+
+    (skipped.length?`<div style="font-size:10px;color:#bbb;align-self:center">No data: ${skipped.map(p=>p.split(' ')[0]).join(', ')}</div>`:'');
+  // Restore canvas / clear SVG state for canvas-based charts
+  const wrap=document.getElementById('pcs-chart-wrap');
+  const svgWrap=document.getElementById('pcs-svg-wrap');
+  const canvas=document.getElementById('c-pcs');
+  if(chartType!=='box'){canvas.style.display='';svgWrap.style.display='none';svgWrap.innerHTML='';wrap.style.height='340px';}
+  if(CH['c-pcs']){CH['c-pcs'].destroy();delete CH['c-pcs'];}
+  if(chartType==='bar')pcsRenderBar(canvas,playerData,xMeta);
+  else if(chartType==='density')pcsRenderDensity(canvas,playerData,xMeta);
+  else if(chartType==='scatter')pcsRenderScatter(canvas,playerData,xMeta,yMeta);
+  else if(chartType==='box')pcsRenderBox(wrap,svgWrap,canvas,playerData,xMeta);
+  else if(chartType==='pie')pcsRenderPie(canvas,playerData,xMeta);
+  pcsRenderTable(playerData,xMeta,yMeta,chartType);
+}
+
+function pcsRenderBar(c,playerData,xMeta){
+  const labels=playerData.map(d=>d.player.split(' ')[0]);
+  const vals=playerData.map(d=>{const v=d.xVals.map(x=>x.v).filter(x=>x!=null&&!isNaN(x));return v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2):null;});
+  const opts=bOpt();opts.scales.y.beginAtZero=true;
+  opts.plugins.datalabels={anchor:'end',align:'top',color:'#222',font:{size:9,weight:'700'},clip:false,formatter:v=>v==null?'':+(v%1===0?v.toFixed(0):v.toFixed(2))};
+  CH['c-pcs']=new Chart(c,{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:playerData.map(d=>d.color+'88'),borderColor:playerData.map(d=>d.color),borderWidth:2,borderRadius:4,maxBarThickness:80}]},options:opts,plugins:[ChartDataLabels]});
+}
+
+function pcsRenderDensity(c,playerData,xMeta){
+  const datasets=playerData.map(d=>{
+    const vals=d.xVals.map(x=>x.v).filter(x=>x!=null&&!isNaN(x));
+    if(!vals.length)return null;
+    const{xs,ys}=pcsKDE(vals);
+    return{label:d.player,data:xs.map((x,i)=>({x,y:ys[i]})),borderColor:d.color,backgroundColor:d.color+'22',borderWidth:2.5,tension:0.4,pointRadius:0,fill:true,showLine:true};
+  }).filter(Boolean);
+  CH['c-pcs']=new Chart(c,{type:'scatter',data:{datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${(+ctx.parsed.x).toFixed(2)}`}}},scales:{x:{title:{display:true,text:xMeta?.l||'',font:{size:10}},ticks:{font:{size:9}},grid:{color:'#f0f0f0'}},y:{title:{display:true,text:'Density',font:{size:10}},ticks:{font:{size:9}},grid:{color:'#f0f0f0'}}}}});
+}
+
+function pcsRenderScatter(c,playerData,xMeta,yMeta){
+  const datasets=playerData.map(d=>{
+    // Match by date for same-source pairs, fallback to index
+    const xByDate={};d.xVals.forEach(x=>{xByDate[x.date]=x.v;});
+    const yByDate={};d.yVals.forEach(y=>{yByDate[y.date]=y.v;});
+    const dates=[...new Set([...Object.keys(xByDate),...Object.keys(yByDate)])].filter(dt=>xByDate[dt]!=null&&yByDate[dt]!=null);
+    const pts=dates.length?dates.map(dt=>({x:xByDate[dt],y:yByDate[dt],date:dt})):d.xVals.slice(0,Math.min(d.xVals.length,d.yVals.length)).map((x,i)=>d.yVals[i]?{x:x.v,y:d.yVals[i].v,date:x.date}:null).filter(Boolean);
+    return{label:d.player,data:pts,backgroundColor:d.color+'cc',borderColor:d.color,borderWidth:1.5,pointRadius:6,pointHoverRadius:8};
+  });
+  CH['c-pcs']=new Chart(c,{type:'scatter',data:{datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: (${(+ctx.parsed.x).toFixed(2)}, ${(+ctx.parsed.y).toFixed(2)})`}}},scales:{x:{title:{display:true,text:xMeta?.l||'',font:{size:10}},ticks:{font:{size:9}},grid:{color:'#f0f0f0'}},y:{title:{display:true,text:yMeta?.l||'',font:{size:10}},ticks:{font:{size:9}},grid:{color:'#f0f0f0'}}}}});
+}
+
+function pcsRenderPie(c,playerData,xMeta){
+  const raw=playerData.map(d=>{const v=d.xVals.map(x=>x.v).filter(x=>x!=null&&!isNaN(x));return v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2):0;});
+  const active=playerData.filter((_,i)=>raw[i]>0);const vals=raw.filter(v=>v>0);
+  if(!vals.length)return;
+  CH['c-pcs']=new Chart(c,{type:'pie',data:{labels:active.map(d=>d.player.split(' ')[0]),datasets:[{data:vals,backgroundColor:active.map(d=>d.color+'cc'),borderColor:active.map(d=>d.color),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{formatter:(val,ctx)=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);return`${(val/t*100).toFixed(1)}%`;},color:'#fff',font:{size:11,weight:'700'}}}},plugins:[ChartDataLabels]});
+}
+
+function pcsRenderBox(wrap,svgWrap,canvas,playerData,xMeta){
+  canvas.style.display='none';svgWrap.style.display='block';wrap.style.height='auto';
+  const stats=playerData.map(d=>({...pcsBoxStats(d.xVals.map(x=>x.v).filter(x=>x!=null&&!isNaN(x))),player:d.player,color:d.color}));
+  const valid=stats.filter(s=>s.n);
+  if(!valid.length){svgWrap.innerHTML='<div style="padding:20px;color:#888;text-align:center">No data for selected players / metric</div>';return;}
+  const allNums=valid.flatMap(s=>[s.whiskerLow,s.whiskerHigh,...s.outliers]);
+  const gMin=Math.min(...allNums),gMax=Math.max(...allNums),gRange=gMax-gMin||1;
+  const W=Math.max(stats.length*110+80,400),H=300;
+  const PL=60,PR=20,PT=20,PB=48;
+  const cH=H-PT-PB,cW=W-PL-PR,bw=44;
+  const toY=v=>PT+cH-((v-gMin)/gRange)*cH;
+  const toX=(i,n)=>PL+(i+0.5)*(cW/n);
+  const step=Math.pow(10,Math.floor(Math.log10(gRange)))*(gRange>500?100:gRange>100?50:gRange>10?10:gRange>2?1:0.5);
+  const ticks=[];for(let v=Math.ceil(gMin/step)*step;v<=gMax+step*0.01;v+=step)ticks.push(+v.toFixed(4));
+  let svg=`<svg width="100%" viewBox="0 0 ${W} ${H}" style="font-family:'Barlow',sans-serif;display:block">`;
+  // Y axis label
+  svg+=`<text transform="rotate(-90)" x="${-(PT+cH/2)}" y="13" text-anchor="middle" font-size="10" fill="#666">${xMeta?.l||''}</text>`;
+  // Grid + ticks
+  ticks.forEach(t=>{const y=toY(t);svg+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#eee" stroke-width="1"/>`;svg+=`<text x="${PL-5}" y="${y+3.5}" text-anchor="end" font-size="9" fill="#888">${t}</text>`;});
+  svg+=`<line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+cH}" stroke="#ddd" stroke-width="1"/>`;
+  // Boxes
+  stats.forEach((s,i)=>{
+    const x=toX(i,stats.length);
+    svg+=`<text x="${x}" y="${H-8}" text-anchor="middle" font-size="10" fill="#333" font-weight="600">${s.player.split(' ')[0]}</text>`;
+    if(!s.n){svg+=`<text x="${x}" y="${PT+cH/2}" text-anchor="middle" font-size="9" fill="#bbb">no data</text>`;return;}
+    const whi=toY(s.whiskerHigh),wlo=toY(s.whiskerLow),q3y=toY(s.q3),q1y=toY(s.q1),medy=toY(s.median),meany=toY(s.mean);
+    // Whisker lines (dashed)
+    svg+=`<line x1="${x}" y1="${whi}" x2="${x}" y2="${q3y}" stroke="${s.color}" stroke-width="1.5" stroke-dasharray="4,2"/>`;
+    svg+=`<line x1="${x}" y1="${q1y}" x2="${x}" y2="${wlo}" stroke="${s.color}" stroke-width="1.5" stroke-dasharray="4,2"/>`;
+    // Whisker caps
+    svg+=`<line x1="${x-13}" y1="${whi}" x2="${x+13}" y2="${whi}" stroke="${s.color}" stroke-width="2"/>`;
+    svg+=`<line x1="${x-13}" y1="${wlo}" x2="${x+13}" y2="${wlo}" stroke="${s.color}" stroke-width="2"/>`;
+    // Box (Q1–Q3)
+    svg+=`<rect x="${x-bw/2}" y="${q3y}" width="${bw}" height="${Math.max(q1y-q3y,1)}" fill="${s.color}30" stroke="${s.color}" stroke-width="2" rx="3"/>`;
+    // Median line
+    svg+=`<line x1="${x-bw/2}" y1="${medy}" x2="${x+bw/2}" y2="${medy}" stroke="${s.color}" stroke-width="2.5"/>`;
+    // Mean diamond
+    svg+=`<polygon points="${x},${meany-4} ${x+4},${meany} ${x},${meany+4} ${x-4},${meany}" fill="#fff" stroke="${s.color}" stroke-width="1.5"/>`;
+    // Outliers
+    s.outliers.forEach(ov=>{ svg+=`<circle cx="${x}" cy="${toY(ov)}" r="3.5" fill="${s.color}66" stroke="${s.color}" stroke-width="1"/>`;});
+  });
+  // Legend
+  svg+=`<text x="${PL+4}" y="${H-2}" font-size="8.5" fill="#aaa">◆ mean  — median  ░ IQR box  ⊙ outlier</text>`;
+  svg+='</svg>';
+  svgWrap.innerHTML=svg;
+}
+
+function pcsRenderTable(playerData,xMeta,yMeta,chartType){
+  const rows=playerData.map(d=>{
+    const xv=d.xVals.map(x=>x.v).filter(x=>x!=null&&!isNaN(x));
+    const s=pcsBoxStats(xv);
+    if(!s)return`<tr><td style="font-weight:700;border-left:4px solid ${d.color};padding-left:8px">${d.player}</td>${Array(7).fill('<td style="color:#ccc">—</td>').join('')}</tr>`;
+    const fmt=v=>v%1===0?v.toFixed(0):v.toFixed(2);
+    const yVals=chartType==='scatter'?d.yVals.map(y=>y.v).filter(v=>v!=null&&!isNaN(v)):[];
+    const ys=chartType==='scatter'&&yVals.length?pcsBoxStats(yVals):null;
+    return`<tr>
+      <td style="font-weight:700;border-left:4px solid ${d.color};padding-left:8px">${d.player}</td>
+      <td style="font-family:var(--font);font-size:14px;font-weight:800;color:${d.color}">${fmt(s.mean)}</td>
+      <td>${fmt(s.median)}</td>
+      <td>${fmt(s.min)}</td>
+      <td>${fmt(s.max)}</td>
+      <td>${fmt(s.q1)}</td>
+      <td>${fmt(s.q3)}</td>
+      <td style="color:#888;font-size:11px">${s.n}</td>
+      ${ys?`<td style="font-family:var(--font);font-size:13px;font-weight:700;color:${d.color}">${fmt(ys.mean)}</td>`:''}
+    </tr>`;
+  });
+  const yHeader=chartType==='scatter'&&yMeta?`<th>${yMeta.l} (avg)</th>`:'';
+  document.getElementById('tbl-pcs').innerHTML=`<thead><tr><th>Player</th><th>${xMeta?.l||'Metric'} (avg)</th><th>Median</th><th>Min</th><th>Max</th><th>Q1</th><th>Q3</th><th>n</th>${yHeader}</tr></thead><tbody>${rows.join('')}</tbody>`;
+}
+
 // ── MD+/- ─────────────────────────────────────────────────────────
 function initMdpm(){
   const ageF=document.getElementById('mdpm-age')?.value||'all';
@@ -1009,11 +1530,12 @@ function renderMdpm(){
   const player=document.getElementById('mdpm-player').value;
   const ageF=document.getElementById('mdpm-age')?.value||'all';
   const partF=document.getElementById('mdpm-part')?.value||'full';
+  const seasonF=document.getElementById('mdpm-season')?.value||'all';
   let sessions;
   if(player==='__group__'){
-    sessions=PLAYERS.filter(p=>AM[p]===ageF).flatMap(p=>(GPS[p]||[]).filter(s=>s.dist&&s.md));
+    sessions=PLAYERS.filter(p=>AM[p]===ageF).flatMap(p=>(GPS[p]||[]).filter(s=>s.dist&&s.md&&inSeason(s.date,seasonF)));
   } else {
-    sessions=(GPS[player]||[]).filter(s=>s.dist&&s.md);
+    sessions=(GPS[player]||[]).filter(s=>s.dist&&s.md&&inSeason(s.date,seasonF));
   }
   const mdGroups={'MD-5':[],'MD-4':[],'MD-3':[],'MD-2':[],'MD-1':[],'MD':[],'MD+1':[]};
   sessions.forEach(s=>{const md=String(s.md).trim();if(mdGroups[md])mdGroups[md].push(s);});
@@ -1037,18 +1559,14 @@ function initVald(){
   const sel=document.getElementById('vald-player');
   if(!sel.options.length){
     const names=new Set([...Object.keys(CMJ),...Object.keys(NB),...Object.keys(VALD)]);
-    const sorted=[...names].sort((a,b)=>{
-      const la=[...(CMJ[a]||[]),...(NB[a]||[]),...(VALD[a]||[])].map(r=>r.date||'').sort().reverse()[0]||'';
-      const lb=[...(CMJ[b]||[]),...(NB[b]||[]),...(VALD[b]||[])].map(r=>r.date||'').sort().reverse()[0]||'';
-      return lb.localeCompare(la);
-    });
+    const sorted=[...names].sort((a,b)=>a.localeCompare(b));
     sorted.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
   }
   sel.onchange=renderVald;renderVald();
 }
 function vasym(l,r){if(!l||!r)return 0;return+(Math.abs(l-r)/Math.max(l,r)*100).toFixed(1);}
 function vbcls(a){return a>10?'br':a>5?'bgy':'bg';}
-function vmtable(l,r,lbl){const asym=vasym(l,r);const lp=l&&r?Math.round(l/(l+r)*100):50;return`<table class="mt"><thead><tr><th>${lbl}</th><th>Left (N)</th><th>Right (N)</th><th>Asymm</th><th>L/R</th></tr></thead><tbody><tr><td style="font-weight:600">Latest</td><td style="font-family:var(--font);font-size:14px;font-weight:700">${l?.toFixed(1)||'—'}</td><td style="font-family:var(--font);font-size:14px;font-weight:700;color:#cc0000">${r?.toFixed(1)||'—'}</td><td>${l&&r?`<span class="badge ${vbcls(asym)}">${asym}%</span>`:'—'}</td><td>${l&&r?`<div class="vax"><span class="vaxl">${lp}%</span><div class="vaxT"><div class="vaxL" style="width:${lp}%"></div><div class="vaxR" style="width:${100-lp}%"></div></div><span class="vaxl" style="color:#cc0000">${100-lp}%</span></div>`:'—'}</td></tr></tbody></table>`;}
+function vmtable(l,r,lbl){const asym=vasym(l,r);const lp=l&&r?Math.round(l/(l+r)*100):50;return`<table class="mt"><thead><tr><th>${lbl}</th><th>Left (N)</th><th>Right (N)</th><th>Asymm</th><th>L/R</th></tr></thead><tbody><tr><td style="font-weight:600">Latest</td><td style="font-family:var(--font);font-size:17px;font-weight:700">${l?.toFixed(1)||'—'}</td><td style="font-family:var(--font);font-size:17px;font-weight:700;color:#cc0000">${r?.toFixed(1)||'—'}</td><td>${l&&r?`<span class="badge ${vbcls(asym)}">${asym}%</span>`:'—'}</td><td>${l&&r?`<div class="vax"><span class="vaxl">${lp}%</span><div class="vaxT"><div class="vaxL" style="width:${lp}%"></div><div class="vaxR" style="width:${100-lp}%"></div></div><span class="vaxl" style="color:#cc0000">${100-lp}%</span></div>`:'—'}</td></tr></tbody></table>`;}
 function renderVald(){
   const pn=document.getElementById('vald-player').value;
   const dr=document.getElementById('vald-date-range')?.value||'all';
@@ -1056,6 +1574,8 @@ function renderVald(){
   const cmjD=fr(CMJ[pn]||[]);
   const nbD=fr(NB[pn]||[]);
   const hipAll=fr(VALD[pn]||[]).filter(r=>r.lMax>0||r.rMax>0);
+  const sprintD=fr(SPRINT[pn]||[]).filter(r=>r.total!=null);
+  const t505D=fr(T505[pn]||[]).filter(r=>r.time!=null);
   const dn=s=>String(s||'').trim().toLowerCase();
   const hipAbd=hipAll.filter(r=>dn(r.direction)==='pull');
   const hipAdd=hipAll.filter(r=>dn(r.direction)==='squeeze');
@@ -1071,36 +1591,61 @@ function renderVald(){
     <div class="vp vpf">
       <div class="vpt">CMJ <span>— ${pn}</span></div>
       <div class="vleg"><div class="vli"><div class="vld" style="background:#444;border:1px solid #999"></div>Height (cm)</div><div class="vli"><div class="vld" style="background:#cc0000"></div>RSI-mod</div></div>
-      <div style="position:relative;height:200px"><canvas id="vc-cmj"></canvas></div>
+      <div style="position:relative;height:260px"><canvas id="vc-cmj"></canvas></div>
       ${cmjD.length?`<table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Height (cm)</th><th>RSI-mod</th><th>Power/BM</th></tr></thead><tbody><tr>
         <td style="color:#888">${lCMJ.date||'—'}</td>
-        <td style="font-family:var(--font);font-size:16px;font-weight:800">${lCMJ.height||'—'}</td>
-        <td style="font-family:var(--font);font-size:16px;font-weight:800;color:#cc0000">${lCMJ.rsi||'—'}</td>
-        <td style="font-family:var(--font);font-size:16px;font-weight:800">${lCMJ.power||'—'}</td>
+        <td style="font-family:var(--font);font-size:19px;font-weight:800">${lCMJ.height||'—'}</td>
+        <td style="font-family:var(--font);font-size:19px;font-weight:800;color:#cc0000">${lCMJ.rsi||'—'}</td>
+        <td style="font-family:var(--font);font-size:19px;font-weight:800">${lCMJ.power||'—'}</td>
       </tr></tbody></table>`:'<div style="color:#666;padding:10px">No CMJ data</div>'}
     </div>
     <div class="vp">
       <div class="vpt">NordBord</div>
       <div class="vleg"><div class="vli"><div class="vld" style="background:#555;border:1px solid #333"></div>Left (N)</div><div class="vli"><div class="vld" style="background:#cc0000"></div>Right (N)</div></div>
-      <div style="position:relative;height:180px"><canvas id="vc-nb"></canvas></div>
+      <div style="position:relative;height:240px"><canvas id="vc-nb"></canvas></div>
       ${nbDD.length?vmtable(lNB.lMax,lNB.rMax,'NordBord'):'<div style="color:#666;padding:10px">No data</div>'}
     </div>
     <div class="vp">
-      <div class="vpt">Hip Abduction <span style="font-size:10px;font-weight:400;color:#999">(Pull)</span></div>
+      <div class="vpt">Hip Abduction <span style="font-size:12px;font-weight:400;color:#999">(Pull)</span></div>
       <div class="vleg"><div class="vli"><div class="vld" style="background:#555;border:1px solid #333"></div>Left (N)</div><div class="vli"><div class="vld" style="background:#cc0000"></div>Right (N)</div></div>
-      <div style="position:relative;height:180px"><canvas id="vc-hip-abd"></canvas></div>
+      <div style="position:relative;height:240px"><canvas id="vc-hip-abd"></canvas></div>
       ${abdD.length?vmtable(lAbd.lMax,lAbd.rMax,'Hip Abduction'):'<div style="color:#666;padding:10px">No data</div>'}
     </div>
     <div class="vp">
-      <div class="vpt">Hip Adduction <span style="font-size:10px;font-weight:400;color:#999">(Squeeze)</span></div>
+      <div class="vpt">Hip Adduction <span style="font-size:12px;font-weight:400;color:#999">(Squeeze)</span></div>
       <div class="vleg"><div class="vli"><div class="vld" style="background:#555;border:1px solid #333"></div>Left (N)</div><div class="vli"><div class="vld" style="background:#cc0000"></div>Right (N)</div></div>
-      <div style="position:relative;height:180px"><canvas id="vc-hip-add"></canvas></div>
+      <div style="position:relative;height:240px"><canvas id="vc-hip-add"></canvas></div>
       ${addD.length?vmtable(lAdd.lMax,lAdd.rMax,'Hip Adduction'):'<div style="color:#666;padding:10px">No data</div>'}
+    </div>
+    <div class="vp vpf">
+      <div class="vpt">30m Sprint <span>— ${pn}</span></div>
+      <div style="position:relative;height:240px"><canvas id="vc-sprint"></canvas></div>
+      ${sprintD.length?`<table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>30m Total (s)</th><th>0–10m</th><th>10–20m</th><th>20–30m</th></tr></thead><tbody>
+        ${[...sprintD].sort((a,b)=>(a.total||99)-(b.total||99)).slice(0,8).map(r=>`<tr>
+          <td style="color:#888">${r.date||'—'}</td>
+          <td style="font-family:var(--font);font-size:17px;font-weight:700">${r.total!=null?r.total.toFixed(3):'—'}</td>
+          <td>${r.split1!=null?r.split1.toFixed(3):'—'}</td>
+          <td>${r.split2!=null?r.split2.toFixed(3):'—'}</td>
+          <td>${r.split3!=null?r.split3.toFixed(3):'—'}</td>
+        </tr>`).join('')}
+      </tbody></table>`:'<div style="color:#666;padding:10px">No sprint data</div>'}
+    </div>
+    <div class="vp">
+      <div class="vpt">5-0-5 Agility <span>— ${pn}</span></div>
+      <div style="position:relative;height:240px"><canvas id="vc-505"></canvas></div>
+      ${t505D.length?`<table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Time (s)</th></tr></thead><tbody>
+        ${[...t505D].sort((a,b)=>(a.time||99)-(b.time||99)).slice(0,8).map(r=>`<tr>
+          <td style="color:#888">${r.date||'—'}</td>
+          <td style="font-family:var(--font);font-size:17px;font-weight:700">${r.time!=null?r.time.toFixed(3):'—'}</td>
+        </tr>`).join('')}
+      </tbody></table>`:'<div style="color:#666;padding:10px">No 5-0-5 data</div>'}
     </div>`;
-  if(cmjD.length)mkCMJ('vc-cmj',cmjD.map(dlbl),cmjD.map(r=>r.height),cmjD.map(r=>r.rsi));
-  if(nbDD.length)mkGrpBar('vc-nb',nbDD.map(dlbl),grpDs(nbDD));
-  if(abdD.length)mkGrpBar('vc-hip-abd',abdD.map(dlbl),grpDs(abdD));
-  if(addD.length)mkGrpBar('vc-hip-add',addD.map(dlbl),grpDs(addD));
+  if(cmjD.length)mkValdCMJ('vc-cmj',cmjD.map(dlbl),cmjD.map(r=>r.height),cmjD.map(r=>r.rsi));
+  if(nbDD.length)mkValdGrpBar('vc-nb',nbDD.map(dlbl),grpDs(nbDD));
+  if(abdD.length)mkValdGrpBar('vc-hip-abd',abdD.map(dlbl),grpDs(abdD));
+  if(addD.length)mkValdGrpBar('vc-hip-add',addD.map(dlbl),grpDs(addD));
+  if(sprintD.length)mkValdBar('vc-sprint',sprintD.map(dlbl),sprintD.map(r=>r.total),'#444','rgba(68,68,68,0.2)');
+  if(t505D.length)mkValdBar('vc-505',t505D.map(dlbl),t505D.map(r=>r.time),'#444','rgba(68,68,68,0.2)');
 }
 
 // ── TESTING ───────────────────────────────────────────────────────
@@ -1119,10 +1664,13 @@ function onTestChange(){
 function renderBroad(){
   const f=ageF();
   const resultF=document.getElementById('test-result')?.value||'best';
+  const seasonF=document.getElementById('test-season')?.value||'all';
   // Build one record per player, then deduplicate by normalized name keeping best dist
   const rawPlayers=Object.entries(BROAD).map(([name,arr])=>{
     if(!arr||!arr.length)return null;
-    const rec=resultF==='recent'?arr[arr.length-1]:[...arr].sort((a,b)=>(b.dist||0)-(a.dist||0))[0];
+    const filtered=arr.filter(r=>inSeason(r.date,seasonF));
+    if(!filtered.length)return null;
+    const rec=resultF==='recent'?filtered[filtered.length-1]:[...filtered].sort((a,b)=>(b.dist||0)-(a.dist||0))[0];
     if(!rec||!rec.dist)return null;
     return{name,normName:name.toLowerCase().replace(/\s+/g,' ').trim(),age:rec.age||arr[0]?.age,pos:PM[name]||'?',dist:+rec.dist,date:rec.date};
   }).filter(Boolean).filter(p=>ageMatch(p.age,f));
@@ -1150,6 +1698,7 @@ function ageMatch(age,f){return f==='all'||f.includes(age);}
 function renderTesting(){
   const f=ageF();const sortBy=document.getElementById('test-sort').value;
   const resultF=document.getElementById('test-result')?.value||'best';
+  const seasonF=document.getElementById('test-season')?.value||'all';
   if(!sortBy||sortBy==='mas')return;
   const titles={total:'30m Sprint — Total',split1:'0–10m Split',split2:'10–20m Split',split3:'20–30m Split',t505:'5-0-5'};
   document.getElementById('sprint-chart-title').textContent=titles[sortBy]||'Sprint';
@@ -1157,7 +1706,9 @@ function renderTesting(){
     document.getElementById('test-split1-panel').style.display='none';
     document.getElementById('test-splits-row2').style.display='none';
     const players=Object.entries(T505).map(([n,arr])=>{
-      const b=resultF==='recent'?arr[arr.length-1]:[...arr].sort((a,b)=>a.time-b.time)[0];
+      const filtered=arr.filter(r=>inSeason(r.date,seasonF));
+      if(!filtered.length)return null;
+      const b=resultF==='recent'?filtered[filtered.length-1]:[...filtered].sort((a,b)=>a.time-b.time)[0];
       if(!b)return null;return{name:n,age:b.age,...b};
     }).filter(Boolean).filter(p=>ageMatch(p.age,f)).sort((a,b)=>a.time-b.time);
     const names=players.map(p=>p.name.split(' ')[0]);
@@ -1170,7 +1721,9 @@ function renderTesting(){
   document.getElementById('test-split1-panel').style.display='';
   document.getElementById('test-splits-row2').style.display='';
   let players=Object.entries(SPRINT).map(([n,arr])=>{
-    const b=resultF==='recent'?arr[arr.length-1]:[...arr].sort((a,b)=>a.total-b.total)[0];
+    const filtered=arr.filter(r=>inSeason(r.date,seasonF));
+    if(!filtered.length)return null;
+    const b=resultF==='recent'?filtered[filtered.length-1]:[...filtered].sort((a,b)=>a.total-b.total)[0];
     if(!b)return null;return{name:n,age:b.age,...b};
   }).filter(Boolean).filter(p=>ageMatch(p.age,f));
   players.sort((a,b)=>(a[sortBy]||99)-(b[sortBy]||99));
@@ -1213,11 +1766,14 @@ function renderMAS(){
   const f=ageF();
   const sortBy=document.getElementById('mas-sort').value;
   const resultF=document.getElementById('test-result')?.value||'best';
+  const seasonF=document.getElementById('test-season')?.value||'all';
   let players=Object.entries(MAS_DATA)
     .filter(([name])=>!name.toLowerCase().includes('avg')&&!name.toLowerCase().includes('team'))
     .map(([name,records])=>{
       if(!records||!records.length)return null;
-      const rec=resultF==='recent'?records[records.length-1]:[...records].filter(r=>r.mas!=null).sort((a,b)=>b.mas-a.mas)[0];
+      const filtered=records.filter(r=>inSeason(r.date,seasonF));
+      if(!filtered.length)return null;
+      const rec=resultF==='recent'?filtered[filtered.length-1]:[...filtered].filter(r=>r.mas!=null).sort((a,b)=>b.mas-a.mas)[0];
       if(!rec)return null;
       return{name,age:rec.age||null,pos:PM[name]||'?',distance:rec.distance,time:rec.time,mas:rec.mas};
     }).filter(Boolean).filter(p=>ageMatch(p.age,f));
@@ -1250,24 +1806,26 @@ function initRankings(){renderRank();}
 function renderRank(){
   const ageF=document.getElementById('rank-age').value;
   const rankBy=document.getElementById('rank-by').value;
+  const seasonF=document.getElementById('rank-season')?.value||'all';
   const parts=rankBy.split('-');const cat=parts[0];const sub=parts[1];const key=parts.slice(1).join('-');
   let ranked=[];
   function fa(age){return ageF==='all'||age===ageF;}
   const dn=s=>String(s||'').trim().toLowerCase();
-  if(cat==='sprint'){ranked=Object.entries(SPRINT).filter(([n,arr])=>fa(arr[0]?.age)).map(([n,arr])=>{const b=[...arr].sort((a,b)=>(a[key]||99)-(b[key]||99))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b[key]||99};}).filter(r=>r.val<99).sort((a,b)=>a.val-b.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(3)+'s',lower:true}));}
-  else if(cat==='t505'){ranked=Object.entries(T505).filter(([n,arr])=>fa(arr[0]?.age)).map(([n,arr])=>{const b=[...arr].sort((a,b)=>a.time-b.time)[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b.time};}).filter(r=>r.val).sort((a,b)=>a.val-b.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(3)+'s',lower:true}));}
-  else if(cat==='broad'){ranked=Object.entries(BROAD).map(([n,arr])=>{const best=[...arr].sort((a,b)=>(b.dist||0)-(a.dist||0))[0];if(!best||!best.dist)return null;return{name:n,age:best.age||arr[0]?.age,pos:PM[n]||'?',val:+best.dist};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' cm'}));}
-  else if(cat==='cmj'){ranked=Object.entries(CMJ).filter(([n,arr])=>fa(arr[0]?.age)).map(([n,arr])=>{const b=[...arr].sort((a,b)=>b[key]-a[key])[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b[key]||0};}).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:key==='rsi'?r.val.toFixed(3):r.val.toFixed(1)+(key==='height'?' cm':' W/kg')}));}
+  const sf=arr=>(arr||[]).filter(r=>inSeason(r.date,seasonF));
+  if(cat==='sprint'){ranked=Object.entries(SPRINT).map(([n,arr])=>{const a=sf(arr).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>(a[key]||99)-(b[key]||99))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b[key]||99};}).filter(Boolean).filter(r=>r.val<99).sort((a,b)=>a.val-b.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(3)+'s',lower:true}));}
+  else if(cat==='t505'){ranked=Object.entries(T505).map(([n,arr])=>{const a=sf(arr).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>a.time-b.time)[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b.time};}).filter(Boolean).filter(r=>r.val).sort((a,b)=>a.val-b.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(3)+'s',lower:true}));}
+  else if(cat==='broad'){ranked=Object.entries(BROAD).map(([n,arr])=>{const a=sf(arr);if(!a.length)return null;const best=[...a].sort((a,b)=>(b.dist||0)-(a.dist||0))[0];if(!best||!best.dist)return null;return{name:n,age:best.age||arr[0]?.age,pos:PM[n]||'?',val:+best.dist};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' cm'}));}
+  else if(cat==='cmj'){ranked=Object.entries(CMJ).map(([n,arr])=>{const a=sf(arr).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>b[key]-a[key])[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b[key]||0};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:key==='rsi'?r.val.toFixed(3):r.val.toFixed(1)+(key==='height'?' cm':' W/kg')}));}
   else if(cat==='nb'){
-    if(sub==='bilateral'){ranked=Object.entries(NB).filter(([n,arr])=>fa(arr[0]?.age)).map(([n,arr])=>{const b=[...arr].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];const v=b?+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2:0;return{name:n,age:b?.age,pos:PM[n]||'?',val:v};}).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));}
-    else{const fk=sub==='lMax'?'lMax':'rMax';ranked=Object.entries(NB).filter(([n,arr])=>fa(arr[0]?.age)).map(([n,arr])=>{const b=[...arr].sort((a,c)=>(c[fk]||0)-(a[fk]||0))[0];return{name:n,age:b?.age,pos:PM[n]||'?',val:b?.[fk]||0};}).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));}
+    if(sub==='bilateral'){ranked=Object.entries(NB).map(([n,arr])=>{const a=sf(arr).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];const v=b?+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2:0;return{name:n,age:b?.age,pos:PM[n]||'?',val:v};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));}
+    else{const fk=sub==='lMax'?'lMax':'rMax';ranked=Object.entries(NB).map(([n,arr])=>{const a=sf(arr).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,c)=>(c[fk]||0)-(a[fk]||0))[0];return{name:n,age:b?.age,pos:PM[n]||'?',val:b?.[fk]||0};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));}
   }
   else if(cat==='hip'){
     const isAbd=sub==='abd';const dir=isAbd?'pull':'squeeze';const fk=parts[2];
-    ranked=Object.entries(VALD).filter(([n,arr])=>fa(arr[0]?.age)).map(([n,arr])=>{
-      const dirArr=arr.filter(r=>dn(r.direction)===dir&&(r.lMax>0||r.rMax>0));if(!dirArr.length)return null;
-      if(fk==='bilateral'){const b=[...dirArr].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2};}
-      const b=[...dirArr].sort((a,b)=>(b[fk]||0)-(a[fk]||0))[0];
+    ranked=Object.entries(VALD).map(([n,arr])=>{
+      const a=sf(arr).filter(r=>fa(r.age)&&dn(r.direction)===dir&&(r.lMax>0||r.rMax>0));if(!a.length)return null;
+      if(fk==='bilateral'){const b=[...a].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2};}
+      const b=[...a].sort((a,b)=>(b[fk]||0)-(a[fk]||0))[0];
       return{name:n,age:b.age,pos:PM[n]||'?',val:b[fk]||0};
     }).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));
   }
@@ -1334,7 +1892,321 @@ function renderMSRecent(){
     allRows.slice(0,25).map(s=>`<tr><td style="font-weight:600">${s.player}</td><td>${ageBadge(s.age)}</td><td style="color:#888">${s.date||'—'}</td><td>${rpill(s.squat||0)}</td><td>${rpill(s.hinge||0)}</td><td>${rpill(s.splitSquat||0)}</td><td>${rpill(s.pushups||0)}</td></tr>`).join('')+'</tbody>';
 }
 
+// ── TRIALIST ──────────────────────────────────────────────────────
+function initTrialist(){
+  const sel=document.getElementById('tr-cmj-player');
+  if(!sel.options.length){
+    const names=[...new Set([...Object.keys(TRIALIST_CMJ),...Object.keys(TRIALIST_MS)])].sort((a,b)=>a.localeCompare(b));
+    names.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
+  }
+  renderTrialistCMJ();
+  renderTrialistMS();
+}
+function renderTrialistCMJ(){
+  const pn=document.getElementById('tr-cmj-player').value;
+  const data=TRIALIST_CMJ[pn]||[];
+  const dlbl=r=>{const d=parseDate(r.date);return`${d.getUTCMonth()+1}/${d.getUTCDate()}`;};
+  const team=(TRIALIST_MS[pn]||[]).slice(-1)[0]?.team||(data.slice(-1)[0]?.age)||null;
+  let teamAvgCMJ=null;
+  if(team){
+    const heights=[];
+    Object.entries(CMJ).forEach(([p,arr])=>{const f=(arr||[]).filter(r=>r.age===team&&r.height>0);if(f.length)heights.push(Math.max(...f.map(r=>r.height)));});
+    if(heights.length)teamAvgCMJ=+(heights.reduce((a,b)=>a+b,0)/heights.length).toFixed(1);
+  }
+  const avgChip=teamAvgCMJ&&team?`<div style="display:inline-flex;align-items:center;gap:6px;background:#fff5f5;border:1px solid #cc000044;padding:4px 10px;border-radius:3px;margin-bottom:8px"><span style="font-family:var(--font);font-size:15px;font-weight:800;color:#cc0000">${teamAvgCMJ} cm</span><span style="font-size:10px;color:#888">${team} squad avg</span></div>`:'';
+  document.getElementById('tr-cmj-dash').innerHTML=data.length?`
+    <div class="vald-wrap" style="margin-top:8px">
+      <div class="vd" style="grid-template-columns:1fr">
+        <div class="vp">
+          <div class="vpt">CMJ Height <span>— ${pn}</span></div>
+          <div class="vleg"><div class="vli"><div class="vld" style="background:#444;border:1px solid #999"></div>Jump Height (cm)</div></div>
+          ${avgChip}
+          <div style="position:relative;height:230px"><canvas id="tr-vc-cmj"></canvas></div>
+          <table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Age</th><th>Height (cm)</th>${teamAvgCMJ?`<th>${team} Squad Avg</th>`:''}</tr></thead><tbody>
+            ${data.map(r=>`<tr><td style="color:#888">${r.date||'—'}</td><td>${ageBadge(r.age)}</td><td style="font-family:var(--font);font-size:19px;font-weight:800;color:#cc0000">${r.height||'—'}</td>${teamAvgCMJ?`<td style="font-family:var(--font);font-size:17px;font-weight:700;color:#888">${teamAvgCMJ}</td>`:''}</tr>`).join('')}
+          </tbody></table>
+        </div>
+      </div>
+    </div>`:'<div style="padding:20px;color:#888">No CMJ data for this player.</div>';
+  if(data.length){const c=document.getElementById('tr-vc-cmj');if(c){if(CH['tr-vc-cmj'])CH['tr-vc-cmj'].destroy();const opts=bOpt();opts.plugins.datalabels={anchor:'end',align:'top',color:'#333',font:{size:8,weight:'700'},clip:false,formatter:v=>v==null?'':v.toFixed(1)};CH['tr-vc-cmj']=new Chart(c,{type:'bar',data:{labels:data.map(dlbl),datasets:[{data:data.map(r=>r.height),backgroundColor:'#cc000044',borderColor:'#cc0000',borderWidth:1,borderRadius:2,maxBarThickness:60}]},options:opts,plugins:[ChartDataLabels]});}}
+}
+function renderTrialistMS(){
+  const pn=document.getElementById('tr-cmj-player').value;
+  const dateF=document.getElementById('tr-ms-date')?.value||'latest';
+  const rows=[];
+  let trialistTeam=null;
+  Object.entries(TRIALIST_MS).forEach(([name,arr])=>{
+    if(pn&&name!==pn)return;
+    if(!arr||!arr.length)return;
+    const sorted=[...arr].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    if(!trialistTeam)trialistTeam=sorted[0]?.age||sorted[0]?.team||null;
+    if(dateF==='latest')rows.push({player:name,...sorted[0]});
+    else sorted.forEach(s=>rows.push({player:name,...s}));
+  });
+  if(!trialistTeam)trialistTeam=(TRIALIST_CMJ[pn]||[]).slice(-1)[0]?.age||null;
+  let teamAvgRow=null;
+  if(trialistTeam){
+    const squad=[];
+    Object.values(MS_DATA).forEach(arr=>{
+      if(!arr||!arr.length)return;
+      const latest=[...arr].sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0];
+      if(latest&&latest.age===trialistTeam)squad.push(latest);
+    });
+    if(squad.length){
+      const avgF=k=>{const v=squad.map(s=>s[k]).filter(x=>x>0);return v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):0;};
+      teamAvgRow={squat:avgF('squat'),hinge:avgF('hinge'),splitSquat:avgF('splitSquat'),pushups:avgF('pushups'),team:trialistTeam,n:squad.length};
+    }
+  }
+  const trialistRows=rows.map(s=>{const vals=[s.squat,s.hinge,s.splitSquat,s.pushups].filter(x=>x>0);const a=vals.length?+(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):0;return`<tr><td style="font-weight:600">${s.player}</td><td style="color:#888">${s.date||'—'}</td><td>${rpill(s.squat||0)}</td><td>${rpill(s.hinge||0)}</td><td>${rpill(s.splitSquat||0)}</td><td>${rpill(s.pushups||0)}</td><td style="font-family:var(--font);font-size:15px;font-weight:800;color:${rcol(Math.round(a))}">${a}</td></tr>`;}).join('');
+  document.getElementById('tbl-tr-ms').innerHTML=`<thead><tr><th>Player</th><th>Date</th><th>Squat</th><th>Hinge</th><th>Split Squat</th><th>Push-up</th><th>Avg</th></tr></thead><tbody>`+
+    (rows.length?trialistRows:'<tr><td colspan="7" style="color:#888;text-align:center;padding:16px">No movement screen data.</td></tr>')+'</tbody>';
+  const bench=document.getElementById('tr-ms-bench');
+  if(teamAvgRow){
+    const vals=[teamAvgRow.squat,teamAvgRow.hinge,teamAvgRow.splitSquat,teamAvgRow.pushups].filter(x=>x>0);
+    const a=vals.length?+(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):0;
+    const stat=(label,v)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;background:#fff;border:1px solid var(--border);border-top:3px solid #cc0000;padding:7px 12px;min-width:80px;flex:1"><div style="font-family:var(--font);font-size:10px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.4px">${label}</div><div>${rpill(v)}</div></div>`;
+    bench.innerHTML=`<div class="panel sg" style="margin-top:7px"><div class="pt ptl">${teamAvgRow.team} Squad Avg <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#888">(n=${teamAvgRow.n}, latest session per player)</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${stat('Squat',teamAvgRow.squat)}${stat('Hinge',teamAvgRow.hinge)}${stat('Split Squat',teamAvgRow.splitSquat)}${stat('Push-up',teamAvgRow.pushups)}${stat('Avg',a)}</div></div>`;
+  }else{bench.innerHTML='';}
+}
+
 // ── BOOT ──────────────────────────────────────────────────────────
+async function exportPDF(pageId){
+  const page=document.getElementById(pageId);
+  if(!page)return;
+  const isVald=pageId==='page-vald';
+  const toHide=[
+    document.querySelector('.topbar'),
+    document.querySelector('.nav'),
+    page.querySelector('.export-btn'),
+    isVald?document.querySelector('.vald-tb'):null,
+    isVald?null:document.querySelector('.daily-header'),
+    isVald?null:document.querySelector('.leg-bar'),
+  ].filter(Boolean);
+  toHide.forEach(el=>{el._ph=el.style.display;el.style.display='none';});
+
+  // For VALD: measure the sprint card's top relative to page element (before capture)
+  let splitCanvasPx=null;
+  if(isVald){
+    const sprintCard=document.getElementById('vc-sprint')?.closest('.vp,.vpf');
+    if(sprintCard){
+      const pTop=page.getBoundingClientRect().top;
+      const cTop=sprintCard.getBoundingClientRect().top;
+      splitCanvasPx=Math.round((cTop-pTop)*1.5);
+    }
+  }
+
+  try{
+    const CS=1.5;
+    const canvas=await html2canvas(page,{scale:CS,useCORS:true,backgroundColor:'#f0f0f0',logging:false,scrollY:0});
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const pgW=pdf.internal.pageSize.getWidth();
+    const pgH=pdf.internal.pageSize.getHeight();
+    const margin=8;
+    const headerH=18;
+    const usableW=pgW-margin*2;
+    const usableH=pgH-headerH-margin;
+    const mmPerPx=usableW/(canvas.width/CS);
+
+    // Build page slices: break at sprint card for VALD, else auto-split
+    let slices=[];
+    if(splitCanvasPx&&splitCanvasPx>0&&splitCanvasPx<canvas.height){
+      slices=[{s:0,e:splitCanvasPx},{s:splitCanvasPx,e:canvas.height}];
+    }else{
+      const totalMmH=(canvas.height/CS)*mmPerPx;
+      const nPages=Math.max(1,Math.ceil(totalMmH/usableH));
+      const ppx=canvas.height/nPages;
+      for(let i=0;i<nPages;i++){const s=Math.floor(i*ppx);slices.push({s,e:Math.min(s+Math.ceil(ppx),canvas.height)});}
+    }
+
+    const addHeader=pg=>{
+      pdf.setFillColor(204,0,0);pdf.rect(0,0,pgW,headerH,'F');
+      pdf.setTextColor(255,255,255);pdf.setFont('helvetica','bold');
+      if(isVald){
+        const pn=document.getElementById('vald-player')?.value||'';
+        const dr=document.getElementById('vald-date-range')?.options[document.getElementById('vald-date-range').selectedIndex]?.text||'';
+        pdf.setFontSize(8);pdf.text('RBNY ACADEMY TESTING',margin,7);
+        pdf.setFontSize(16);pdf.text(pn,pgW/2,12,{align:'center'});
+        pdf.setFontSize(8);pdf.text(dr,pgW-margin,7,{align:'right'});
+      }else{
+        const dateEl=document.getElementById('g-date');
+        const dt=dateEl?.options[dateEl.selectedIndex]?.text||'';
+        pdf.setFontSize(14);pdf.text('RBNY ACADEMY — DAILY REPORT',pgW/2,11,{align:'center'});
+        pdf.setFontSize(8);pdf.text(dt,pgW-margin,7,{align:'right'});
+      }
+      if(pg>1){pdf.setFontSize(8);pdf.text(''+pg,margin,12);}
+    };
+
+    slices.forEach(({s,e},i)=>{
+      if(i>0)pdf.addPage();
+      addHeader(i+1);
+      const slicePx=e-s;
+      const sc=document.createElement('canvas');
+      sc.width=canvas.width;sc.height=slicePx;
+      sc.getContext('2d').drawImage(canvas,0,s,canvas.width,slicePx,0,0,canvas.width,slicePx);
+      const natH=(slicePx/CS)*mmPerPx;
+      // Scale to fit page height if needed; always fill page width
+      if(natH>usableH){
+        const r=usableH/natH;
+        const iW=usableW*r;
+        pdf.addImage(sc.toDataURL('image/jpeg',0.92),'JPEG',margin+(usableW-iW)/2,headerH+2,iW,usableH);
+      }else{
+        pdf.addImage(sc.toDataURL('image/jpeg',0.92),'JPEG',margin,headerH+2,usableW,natH);
+      }
+    });
+
+    const name=isVald?(document.getElementById('vald-player')?.value||'testing'):'daily-report';
+    pdf.save(`RBNY-${name}-${new Date().toISOString().slice(0,10)}.pdf`);
+  }catch(e){console.error(e);alert('PDF export failed: '+e.message);}
+  finally{toHide.forEach(el=>{el.style.display=el._ph||'';});}
+}
+// ── PHV ──────────────────────────────────────────────────────────
+function phvStage(v){if(v===null||v===undefined)return null;if(v<-1)return'pre';if(v<=1)return'circum';return'post';}
+function phvColor(v){const s=phvStage(v);return s==='pre'?'#0055cc':s==='circum'?'#ff9500':'#007a30';}
+function phvLabel(v){const s=phvStage(v);return s==='pre'?'Pre-PHV':s==='circum'?'Circum-PHV':'Post-PHV';}
+
+function phvClearFilters(){
+  document.getElementById('phv-player').value='all';
+  document.getElementById('phv-team').value='all';
+  document.getElementById('phv-session').value='latest';
+  document.getElementById('phv-bio-min').value='';
+  document.getElementById('phv-bio-max').value='';
+  document.getElementById('phv-grw-min').value='';
+  document.getElementById('phv-grw-max').value='';
+  renderPHV();
+}
+
+function initPHV(){
+  const players=new Set();
+  const teams=new Set();
+  Object.entries(PHV_DATA).forEach(([name,arr])=>{
+    players.add(name);
+    arr.forEach(r=>{if(r.team)teams.add(r.team);});
+  });
+  const pSel=document.getElementById('phv-player');
+  pSel.innerHTML='<option value="all">All Players</option>';
+  [...players].sort().forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;pSel.appendChild(o);});
+  const tSel=document.getElementById('phv-team');
+  tSel.innerHTML='<option value="all">All Groups</option>';
+  [...teams].sort().forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;tSel.appendChild(o);});
+  renderPHV();
+}
+
+function renderPHV(){
+  const playerF=document.getElementById('phv-player')?.value||'all';
+  const teamF=document.getElementById('phv-team')?.value||'all';
+  const sessF=document.getElementById('phv-session')?.value||'latest';
+  const bioMin=parseFloat(document.getElementById('phv-bio-min')?.value);
+  const bioMax=parseFloat(document.getElementById('phv-bio-max')?.value);
+  const grwMin=parseFloat(document.getElementById('phv-grw-min')?.value);
+  const grwMax=parseFloat(document.getElementById('phv-grw-max')?.value);
+
+  // Gather rows
+  let rows=[];
+  Object.entries(PHV_DATA).forEach(([name,arr])=>{
+    if(!arr||!arr.length)return;
+    if(playerF!=='all'&&name!==playerF)return;
+    const entries=sessF==='latest'?[arr[arr.length-1]]:arr;
+    entries.forEach(r=>{
+      if(teamF!=='all'&&r.team!==teamF)return;
+      if(!isNaN(bioMin)&&(r.bioAge===null||r.bioAge<bioMin))return;
+      if(!isNaN(bioMax)&&(r.bioAge===null||r.bioAge>bioMax))return;
+      if(!isNaN(grwMin)&&(r.growthPct===null||r.growthPct<grwMin))return;
+      if(!isNaN(grwMax)&&(r.growthPct===null||r.growthPct>grwMax))return;
+      rows.push({name,...r});
+    });
+  });
+
+  // Sort by PHV ascending (Pre first)
+  rows.sort((a,b)=>(a.phv??999)-(b.phv??999));
+
+  // KPIs
+  const withPHV=rows.filter(r=>r.phv!==null);
+  const pre=withPHV.filter(r=>phvStage(r.phv)==='pre').length;
+  const circum=withPHV.filter(r=>phvStage(r.phv)==='circum').length;
+  const post=withPHV.filter(r=>phvStage(r.phv)==='post').length;
+  document.getElementById('phv-kpis').innerHTML=[
+    {v:withPHV.length,l:'Players Assessed'},
+    {v:pre,l:'Pre-PHV'},
+    {v:circum,l:'Circum-PHV'},
+    {v:post,l:'Post-PHV'},
+  ].map(({v,l})=>`<div class="panel" style="padding:10px 12px"><div class="kv">${v??'—'}</div><div class="kl">${l}</div></div>`).join('');
+
+  // Show/hide height chart — only when a specific player or age group is selected
+  const showHeightChart=playerF!=='all'||teamF!=='all';
+  document.getElementById('phv-height-panel').style.display=showHeightChart?'':'none';
+
+  // Chart 1: PHV offset by player
+  const phvRows=rows.filter(r=>r.phv!==null);
+  mkBarM('c-phv-offset',
+    phvRows.map(r=>r.name),
+    phvRows.map(r=>r.phv),
+    phvRows.map(r=>phvColor(r.phv)),
+    phvRows.map(r=>phvColor(r.phv)+'55')
+  );
+  const c1=CH['c-phv-offset'];
+  if(c1&&phvRows.length){c1.options.scales.y.min=Math.min(-3,...phvRows.map(r=>r.phv))-0.5;c1.options.scales.y.max=Math.max(3,...phvRows.map(r=>r.phv))+0.5;c1.update();}
+
+  // Chart 2: Stage distribution
+  const stageLbls=['Pre-PHV','Circum-PHV','Post-PHV'];
+  const stageCols=['#0055cc','#ff9500','#007a30'];
+  {const c=document.getElementById('c-phv-dist');if(c){if(CH['c-phv-dist'])CH['c-phv-dist'].destroy();CH['c-phv-dist']=new Chart(c,{type:'bar',data:{labels:stageLbls,datasets:[{data:[pre,circum,post],backgroundColor:stageCols.map(c=>c+'66'),borderColor:stageCols,borderWidth:2,borderRadius:4}]},options:{...bOpt(),plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#222',font:{size:11,weight:'700'},formatter:v=>v}}},plugins:[ChartDataLabels]});}}
+
+  // Chart 3: Bio Age vs Chrono Age scatter
+  const ageRows=rows.filter(r=>r.ageAtTest!==null&&r.bioAge!==null);
+  {const c=document.getElementById('c-phv-age');if(c){if(CH['c-phv-age'])CH['c-phv-age'].destroy();
+    CH['c-phv-age']=new Chart(c,{type:'scatter',data:{datasets:[{
+      data:ageRows.map(r=>({x:r.ageAtTest,y:r.bioAge,name:r.name,phv:r.phv})),
+      backgroundColor:ageRows.map(r=>phvColor(r.phv)+'99'),
+      borderColor:ageRows.map(r=>phvColor(r.phv)),
+      pointRadius:6,pointHoverRadius:8,borderWidth:1.5
+    }]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw.name}: Chrono ${ctx.raw.x?.toFixed(1)}, Bio ${ctx.raw.y?.toFixed(1)}`}},datalabels:{display:false}},
+      scales:{x:{title:{display:true,text:'Chronological Age',font:{size:10}},ticks:{font:{size:9}}},y:{title:{display:true,text:'Biological Age',font:{size:10}},ticks:{font:{size:9}}}}},plugins:[ChartDataLabels]});}}
+
+  // Chart 4: Current height vs adult predicted height (only when filtered)
+  if(showHeightChart){
+    const htRows=rows.filter(r=>r.height!==null&&r.adultHeight!==null).sort((a,b)=>b.height-a.height);
+    {const c=document.getElementById('c-phv-height');if(c){if(CH['c-phv-height'])CH['c-phv-height'].destroy();
+      CH['c-phv-height']=new Chart(c,{type:'bar',data:{labels:htRows.map(r=>r.name),datasets:[
+        {label:'Current Height',data:htRows.map(r=>r.height),backgroundColor:'#44444466',borderColor:'#444',borderWidth:1,borderRadius:2},
+        {label:'Predicted Adult',data:htRows.map(r=>r.adultHeight),backgroundColor:'#cc000033',borderColor:'#cc0000',borderWidth:1,borderRadius:2}
+      ]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:16}},
+        plugins:{legend:{display:true,position:'top',labels:{font:{size:10}}},datalabels:{display:false}},
+        scales:{x:{ticks:{font:{size:9},maxRotation:45},grid:{display:false}},y:{ticks:{font:{size:9}},beginAtZero:false}}},plugins:[ChartDataLabels]});}}
+  }
+
+  // Table — exact column order requested
+  const tbl=document.getElementById('tbl-phv');
+  if(!tbl)return;
+  if(!rows.length){tbl.innerHTML='<tr><td colspan="12" style="padding:20px;text-align:center;color:#aaa">No data matches the current filters</td></tr>';return;}
+  const fmt=v=>v!==null&&v!==undefined?+v%1===0?v:v.toFixed(2):'—';
+  const fmtChg=v=>v===null||v===undefined?'—':(v>0?'+':'')+v.toFixed(2);
+  tbl.innerHTML=`<thead><tr>
+    <th>Date</th><th>Team</th><th>Name</th>
+    <th>Age at Test</th><th>Biological Age</th>
+    <th>Weight (lb)</th><th>Weight Change</th>
+    <th>Standing Height (in)</th><th>Height Change</th>
+    <th>Adult Height (in)</th><th>PHV</th><th>Growth %</th>
+  </tr></thead><tbody>${rows.map(r=>{
+    const sc=r.phv!==null?phvColor(r.phv):'#aaa';
+    return`<tr>
+      <td>${r.date||'—'}</td>
+      <td>${r.team||'—'}</td>
+      <td style="font-weight:600">${r.name}</td>
+      <td>${fmt(r.ageAtTest)}</td>
+      <td>${fmt(r.bioAge)}</td>
+      <td>${fmt(r.weight)}</td>
+      <td style="color:${r.weightChg>0?'#cc0000':r.weightChg<0?'#007a30':'#555'}">${fmtChg(r.weightChg)}</td>
+      <td>${fmt(r.height)}</td>
+      <td style="color:${r.heightChg>0?'#007a30':r.heightChg<0?'#cc0000':'#555'}">${fmtChg(r.heightChg)}</td>
+      <td>${fmt(r.adultHeight)}</td>
+      <td style="font-weight:700;color:${sc}">${fmt(r.phv)}&nbsp;<span style="font-size:9px;font-weight:400;color:${sc}">${r.phv!==null?phvLabel(r.phv):''}</span></td>
+      <td>${r.growthPct!==null?(r.growthPct.toFixed(1)+'%'):'—'}</td>
+    </tr>`;
+  }).join('')}</tbody>`;
+}
+
 window.addEventListener('load', loadAllData);
 </script>
 </body>

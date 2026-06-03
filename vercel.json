@@ -1,5 +1,12 @@
 {
   "version": 2,
+  "alias": ["rbny-ams.vercel.app"],
+  "headers": [
+    {
+      "source": "/",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    }
+  ],
   "rewrites": [
     { "source": "/api/gps", "destination": "/api/gps.js" },
     { "source": "/api/cmj", "destination": "/api/cmj.js" },
@@ -9,6 +16,8 @@
     { "source": "/api/505", "destination": "/api/505.js" },
     { "source": "/api/broad", "destination": "/api/broad.js" },
     { "source": "/api/mas", "destination": "/api/mas.js" },
-    { "source": "/api/movement", "destination": "/api/movement.js" }
+    { "source": "/api/movement", "destination": "/api/movement.js" },
+    { "source": "/api/trialist", "destination": "/api/trialist.js" },
+    { "source": "/api/phv", "destination": "/api/phv.js" }
   ]
 }
