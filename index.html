@@ -568,9 +568,10 @@ tr:last-child td{border-bottom:none}
       <div class="panel sg" style="margin-top:8px"><div class="pt ptl">Results</div><div class="tw"><table id="tbl-nb-squad"></table></div></div>
     </div>
     <div id="test-hip-section" style="display:none">
-      <div class="ctrl-row"><span class="cl">Direction:</span><select class="ctrl" id="hip-dir" onchange="renderHipSquad()"><option value="abd">Abduction (Pull)</option><option value="add">Adduction (Squeeze)</option></select></div>
-      <div class="panel sg"><div class="pt" id="hip-chart-title">Hip Force (N)</div><div class="cb-lg"><canvas id="c-test-hip"></canvas></div></div>
-      <div class="panel sg" style="margin-top:8px"><div class="pt ptl">Results</div><div class="tw"><table id="tbl-hip-squad"></table></div></div>
+      <div class="panel sg"><div class="pt">Hip Abduction (Pull) — Force (N)</div><div class="cb-lg"><canvas id="c-test-hip-abd"></canvas></div></div>
+      <div class="panel sg" style="margin-top:8px"><div class="pt ptl">Abduction Results</div><div class="tw"><table id="tbl-hip-abd-squad"></table></div></div>
+      <div class="panel sg" style="margin-top:14px"><div class="pt">Hip Adduction (Squeeze) — Force (N)</div><div class="cb-lg"><canvas id="c-test-hip-add"></canvas></div></div>
+      <div class="panel sg" style="margin-top:8px"><div class="pt ptl">Adduction Results</div><div class="tw"><table id="tbl-hip-add-squad"></table></div></div>
     </div>
   </div>
 </div>
@@ -1887,32 +1888,31 @@ function renderNBSquad(){
 }
 function renderHipSquad(){
   const f=ageF(),resultF=document.getElementById('test-result')?.value||'best',seasonF=document.getElementById('test-season')?.value||'all';
-  const dir=document.getElementById('hip-dir')?.value||'abd';
-  const mapped=dir==='abd'?'pull':'squeeze';
-  document.getElementById('hip-chart-title').textContent=`Hip ${dir==='abd'?'Abduction (Pull)':'Adduction (Squeeze)'} — Force (N)`;
   const dn=s=>String(s||'').trim().toLowerCase();
-  const players=Object.entries(VALD).map(([n,arr])=>{
-    const filtered=arr.filter(r=>inSeason(r.date,seasonF)&&dn(r.direction)===mapped&&(r.lMax>0||r.rMax>0));
-    const d=bestPerDate(filtered,(a,b)=>((a.lMax||0)+(a.rMax||0))>((b.lMax||0)+(b.rMax||0)));
-    if(!d.length)return null;
-    const b=resultF==='recent'?d[d.length-1]:[...d].sort((a,c)=>((c.lMax||0)+(c.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];
-    if(!b||(!b.lMax&&!b.rMax))return null;
-    const bilateral=+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2;
-    return{name:n,age:b.age,pos:PM[n]||'?',left:b.lMax,right:b.rMax,bilateral,date:b.date};
-  }).filter(Boolean).filter(p=>ageMatch(p.age,f)).sort((a,b)=>b.bilateral-a.bilateral);
-  const names=players.map(p=>p.name.split(' ')[0]);
-  mkGrpBar('c-test-hip',names,[
-    {label:'Left',data:players.map(p=>p.left),backgroundColor:'rgba(68,68,68,0.5)',borderColor:'#444',borderWidth:1,borderRadius:2},
-    {label:'Right',data:players.map(p=>p.right),backgroundColor:'rgba(204,0,0,0.5)',borderColor:'#cc0000',borderWidth:1,borderRadius:2}]);
-  document.getElementById('tbl-hip-squad').innerHTML=
-    `<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Left (N)</th><th>Right (N)</th><th>Bilateral Avg</th><th>Date</th></tr></thead><tbody>`+
-    players.map((p,i)=>`<tr>
-      <td><span class="rn ${i<3?'top':''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</span></td>
-      <td style="font-weight:600">${p.name}</td><td>${ageBadge(p.age)}</td><td>${posBadge(p.pos)}</td>
-      <td>${p.left?.toFixed(1)||'—'}</td><td>${p.right?.toFixed(1)||'—'}</td>
-      <td style="font-family:var(--font);font-size:16px;font-weight:800;color:${i<3?'#cc0000':'#1a1a1a'}">${p.bilateral.toFixed(1)} N</td>
-      <td style="color:#888;font-size:12px">${p.date||'—'}</td>
-    </tr>`).join('')+'</tbody>';
+  const hipTable=(chartId,tableId,mapped)=>{
+    const players=Object.entries(VALD).map(([n,arr])=>{
+      const filtered=arr.filter(r=>inSeason(r.date,seasonF)&&dn(r.direction)===mapped&&(r.lMax>0||r.rMax>0));
+      const d=bestPerDate(filtered,(a,b)=>((a.lMax||0)+(a.rMax||0))>((b.lMax||0)+(b.rMax||0)));
+      if(!d.length)return null;
+      const b=resultF==='recent'?d[d.length-1]:[...d].sort((a,c)=>((c.lMax||0)+(c.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];
+      if(!b||(!b.lMax&&!b.rMax))return null;
+      return{name:n,age:b.age,pos:PM[n]||'?',left:b.lMax,right:b.rMax,bilateral:+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2,date:b.date};
+    }).filter(Boolean).filter(p=>ageMatch(p.age,f)).sort((a,b)=>b.bilateral-a.bilateral);
+    mkGrpBar(chartId,players.map(p=>p.name.split(' ')[0]),[
+      {label:'Left',data:players.map(p=>p.left),backgroundColor:'rgba(68,68,68,0.5)',borderColor:'#444',borderWidth:1,borderRadius:2},
+      {label:'Right',data:players.map(p=>p.right),backgroundColor:'rgba(204,0,0,0.5)',borderColor:'#cc0000',borderWidth:1,borderRadius:2}]);
+    document.getElementById(tableId).innerHTML=
+      `<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Left (N)</th><th>Right (N)</th><th>Bilateral Avg</th><th>Date</th></tr></thead><tbody>`+
+      players.map((p,i)=>`<tr>
+        <td><span class="rn ${i<3?'top':''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</span></td>
+        <td style="font-weight:600">${p.name}</td><td>${ageBadge(p.age)}</td><td>${posBadge(p.pos)}</td>
+        <td>${p.left?.toFixed(1)||'—'}</td><td>${p.right?.toFixed(1)||'—'}</td>
+        <td style="font-family:var(--font);font-size:16px;font-weight:800;color:${i<3?'#cc0000':'#1a1a1a'}">${p.bilateral.toFixed(1)} N</td>
+        <td style="color:#888;font-size:12px">${p.date||'—'}</td>
+      </tr>`).join('')+'</tbody>';
+  };
+  hipTable('c-test-hip-abd','tbl-hip-abd-squad','pull');
+  hipTable('c-test-hip-add','tbl-hip-add-squad','squeeze');
 }
 // ── RANKINGS ──────────────────────────────────────────────────────
 function toggleRankAgePill(btn){
