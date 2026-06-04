@@ -604,6 +604,8 @@ tr:last-child td{border-bottom:none}
       <select class="ctrl" id="rank-season" onchange="renderRank()"><option value="all">All Seasons</option></select>
       <span class="cl">Age:</span>
       <select class="ctrl" id="rank-age" onchange="renderRank()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
+      <span class="cl">Pos:</span>
+      <select class="ctrl" id="rank-pos" onchange="renderRank()"><option value="all">All</option><option value="CB">CB</option><option value="FW">FW</option><option value="FB">FB</option><option value="GK">GK</option><option value="MF">MF</option></select>
       <span class="cl">Rank by:</span>
       <select class="ctrl" id="rank-by" onchange="renderRank()">
         <optgroup label="Sprint"><option value="sprint-total">30m Total</option><option value="sprint-split1">0-10m</option><option value="sprint-split2">10-20m</option><option value="sprint-split3">20-30m</option></optgroup>
@@ -614,6 +616,9 @@ tr:last-child td{border-bottom:none}
         <optgroup label="Hip Abduction (Pull)"><option value="hip-abd-bilateral">Abduction Bilateral Avg</option><option value="hip-abd-lMax">Abduction Left</option><option value="hip-abd-rMax">Abduction Right</option></optgroup>
         <optgroup label="Hip Adduction (Squeeze)"><option value="hip-add-bilateral">Adduction Bilateral Avg</option><option value="hip-add-lMax">Adduction Left</option><option value="hip-add-rMax">Adduction Right</option></optgroup>
       </select>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:6px">
+      <button class="export-btn" onclick="exportPDF('page-rank')">⬇ Export PDF</button>
     </div>
     <div class="tw"><table id="tbl-rank"></table></div>
   </div>
@@ -1805,6 +1810,7 @@ function renderMAS(){
 function initRankings(){renderRank();}
 function renderRank(){
   const ageF=document.getElementById('rank-age').value;
+  const posF=document.getElementById('rank-pos').value;
   const rankBy=document.getElementById('rank-by').value;
   const seasonF=document.getElementById('rank-season')?.value||'all';
   const parts=rankBy.split('-');const cat=parts[0];const sub=parts[1];const key=parts.slice(1).join('-');
@@ -1829,6 +1835,7 @@ function renderRank(){
       return{name:n,age:b.age,pos:PM[n]||'?',val:b[fk]||0};
     }).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));
   }
+  if(posF!=='all')ranked=ranked.filter(r=>r.pos===posF);
   const mx=ranked[0]?.val||1;
   const M=['🥇','🥈','🥉'];
   document.getElementById('tbl-rank').innerHTML=`<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Score</th><th style="min-width:120px">Bar</th></tr></thead><tbody>`+
