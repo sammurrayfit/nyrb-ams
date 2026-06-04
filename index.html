@@ -1623,79 +1623,80 @@ function renderVald(){
     {label:'L',data:data.map(r=>r.lMax),backgroundColor:'#555',borderColor:'#222',borderWidth:1,borderRadius:2},
     {label:'R',data:data.map(r=>r.rMax),backgroundColor:'#cc0000',borderColor:'#990000',borderWidth:1,borderRadius:2}];
   document.getElementById('vald-dash').innerHTML=`
-    <div class="vp vpf">
+    ${cmjD.length?`<div class="vp vpf">
       <div class="vpt">CMJ <span>— ${pn}</span></div>
       <div class="vleg"><div class="vli"><div class="vld" style="background:#444;border:1px solid #999"></div>Height (cm)</div><div class="vli"><div class="vld" style="background:#cc0000"></div>RSI-mod</div></div>
       <div style="position:relative;height:260px"><canvas id="vc-cmj"></canvas></div>
-      ${cmjD.length?`<table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Height (cm)</th><th>RSI-mod</th><th>Power/BM</th></tr></thead><tbody><tr>
+      <table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Height (cm)</th><th>RSI-mod</th><th>Power/BM</th></tr></thead><tbody><tr>
         <td style="color:#888">${lCMJ.date||'—'}</td>
         <td style="font-family:var(--font);font-size:19px;font-weight:800">${lCMJ.height||'—'}</td>
         <td style="font-family:var(--font);font-size:19px;font-weight:800;color:#cc0000">${lCMJ.rsi||'—'}</td>
         <td style="font-family:var(--font);font-size:19px;font-weight:800">${lCMJ.power||'—'}</td>
-      </tr></tbody></table>`:'<div style="color:#666;padding:10px">No CMJ data</div>'}
-    </div>
-    <div class="vp">
+      </tr></tbody></table>
+    </div>`:''}
+    ${nbDD.length?`<div class="vp">
       <div class="vpt">NordBord</div>
       <div class="vleg"><div class="vli"><div class="vld" style="background:#555;border:1px solid #333"></div>Left (N)</div><div class="vli"><div class="vld" style="background:#cc0000"></div>Right (N)</div></div>
       <div style="position:relative;height:240px"><canvas id="vc-nb"></canvas></div>
-      ${nbDD.length?vmtable(lNB.lMax,lNB.rMax,'NordBord'):'<div style="color:#666;padding:10px">No data</div>'}
-    </div>
-    <div class="vp">
+      ${vmtable(lNB.lMax,lNB.rMax,'NordBord')}
+    </div>`:''}
+    ${abdD.length?`<div class="vp">
       <div class="vpt">Hip Abduction <span style="font-size:12px;font-weight:400;color:#999">(Pull)</span></div>
       <div class="vleg"><div class="vli"><div class="vld" style="background:#555;border:1px solid #333"></div>Left (N)</div><div class="vli"><div class="vld" style="background:#cc0000"></div>Right (N)</div></div>
       <div style="position:relative;height:240px"><canvas id="vc-hip-abd"></canvas></div>
-      ${abdD.length?vmtable(lAbd.lMax,lAbd.rMax,'Hip Abduction'):'<div style="color:#666;padding:10px">No data</div>'}
-    </div>
-    <div class="vp">
+      ${vmtable(lAbd.lMax,lAbd.rMax,'Hip Abduction')}
+    </div>`:''}
+    ${addD.length?`<div class="vp">
       <div class="vpt">Hip Adduction <span style="font-size:12px;font-weight:400;color:#999">(Squeeze)</span></div>
       <div class="vleg"><div class="vli"><div class="vld" style="background:#555;border:1px solid #333"></div>Left (N)</div><div class="vli"><div class="vld" style="background:#cc0000"></div>Right (N)</div></div>
       <div style="position:relative;height:240px"><canvas id="vc-hip-add"></canvas></div>
-      ${addD.length?vmtable(lAdd.lMax,lAdd.rMax,'Hip Adduction'):'<div style="color:#666;padding:10px">No data</div>'}
-    </div>
-    <div class="vp">
+      ${vmtable(lAdd.lMax,lAdd.rMax,'Hip Adduction')}
+    </div>`:''}
+    ${broadD.length?`<div class="vp">
       <div class="vpt">Broad Jump <span>— ${pn}</span></div>
       <div style="position:relative;height:240px"><canvas id="vc-broad"></canvas></div>
-      ${broadD.length?`<table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Distance (cm)</th></tr></thead><tbody>
+      <table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Distance (cm)</th></tr></thead><tbody>
         ${broadD.map(r=>`<tr>
           <td style="color:#888">${r.date||'—'}</td>
           <td style="font-family:var(--font);font-size:17px;font-weight:700">${r.dist!=null?r.dist.toFixed(1):'—'} cm</td>
         </tr>`).join('')}
-      </tbody></table>`:'<div style="color:#666;padding:10px">No broad jump data</div>'}
-    </div>
-    <div class="vp vpf">
+      </tbody></table>
+    </div>`:''}
+    ${sprintD.length?`<div class="vp vpf">
       <div class="vpt">30m Sprint <span>— ${pn}</span></div>
       <div style="position:relative;height:240px"><canvas id="vc-sprint"></canvas></div>
-      ${sprintD.length?`<table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>30m Total (s)</th><th>0–10m</th><th>10–20m</th><th>20–30m</th></tr></thead><tbody>
-        ${[...sprintD].sort((a,b)=>(a.total||99)-(b.total||99)).slice(0,8).map(r=>`<tr>
+      <table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>30m Total (s)</th><th>0–10m</th><th>10–20m</th><th>20–30m</th></tr></thead><tbody>
+        ${sprintD.map(r=>`<tr>
           <td style="color:#888">${r.date||'—'}</td>
           <td style="font-family:var(--font);font-size:17px;font-weight:700">${r.total!=null?r.total.toFixed(3):'—'}</td>
           <td>${r.split1!=null?r.split1.toFixed(3):'—'}</td>
           <td>${r.split2!=null?r.split2.toFixed(3):'—'}</td>
           <td>${r.split3!=null?r.split3.toFixed(3):'—'}</td>
         </tr>`).join('')}
-      </tbody></table>`:'<div style="color:#666;padding:10px">No sprint data</div>'}
-    </div>
-    <div class="vp">
+      </tbody></table>
+    </div>`:''}
+    ${t505D.length?`<div class="vp">
       <div class="vpt">5-0-5 Agility <span>— ${pn}</span></div>
       <div style="position:relative;height:240px"><canvas id="vc-505"></canvas></div>
-      ${t505D.length?`<table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Time (s)</th></tr></thead><tbody>
+      <table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Time (s)</th></tr></thead><tbody>
         ${t505D.map(r=>`<tr>
           <td style="color:#888">${r.date||'—'}</td>
           <td style="font-family:var(--font);font-size:17px;font-weight:700">${r.time!=null?r.time.toFixed(3):'—'}</td>
         </tr>`).join('')}
-      </tbody></table>`:'<div style="color:#666;padding:10px">No 5-0-5 data</div>'}
-    </div>
-    <div class="vp">
+      </tbody></table>
+    </div>`:''}
+    ${masD.length?`<div class="vp">
       <div class="vpt">MAS <span>— ${pn}</span></div>
       <div style="position:relative;height:240px"><canvas id="vc-mas"></canvas></div>
-      ${masD.length?`<table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Distance (m)</th><th>MAS Score</th></tr></thead><tbody>
+      <table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Distance (m)</th><th>MAS Score</th></tr></thead><tbody>
         ${masD.map(r=>`<tr>
           <td style="color:#888">${r.date||'—'}</td>
           <td>${r.distance!=null?r.distance:'—'}</td>
           <td style="font-family:var(--font);font-size:17px;font-weight:700;color:${r.mas>=5?'#007a30':r.mas>=4.5?'#5a9000':r.mas>=4?'#d4a000':r.mas>=3.5?'#e05000':'#cc0000'}">${r.mas!=null?r.mas:'—'}</td>
         </tr>`).join('')}
-      </tbody></table>`:'<div style="color:#666;padding:10px">No MAS data</div>'}
-    </div>`;
+      </tbody></table>
+    </div>`:''}
+    ${!cmjD.length&&!nbDD.length&&!abdD.length&&!addD.length&&!broadD.length&&!sprintD.length&&!t505D.length&&!masD.length?'<div class="vp vpf" style="padding:40px;text-align:center;color:#999">No testing data for this player</div>':''}`;
   if(cmjD.length)mkValdCMJ('vc-cmj',cmjD.map(dlbl),cmjD.map(r=>r.height),cmjD.map(r=>r.rsi));
   if(nbDD.length)mkValdGrpBar('vc-nb',nbDD.map(dlbl),grpDs(nbDD));
   if(abdD.length)mkValdGrpBar('vc-hip-abd',abdD.map(dlbl),grpDs(abdD));
@@ -2026,7 +2027,7 @@ function renderMSOv(){
   Object.entries(MS_DATA).forEach(([name,arr])=>{
     if(!arr||!arr.length)return;
     if(ageF!=='all'&&arr[0]?.age!==ageF)return;
-    const sorted=[...arr].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    const sorted=[...arr].sort((a,b)=>parseDate(b.date)-parseDate(a.date));
     if(dateF==='latest')rows.push({player:name,...sorted[0]});
     else sorted.forEach(s=>rows.push({player:name,...s}));
   });
@@ -2044,7 +2045,7 @@ function renderMSRecent(){
   const allRows=[];
   Object.entries(MS_DATA).forEach(([name,arr])=>{(arr||[]).forEach(s=>allRows.push({player:name,...s}));});
   MS_LOCAL.forEach(s=>allRows.unshift(s));
-  allRows.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  allRows.sort((a,b)=>parseDate(b.date)-parseDate(a.date));
   document.getElementById('tbl-ms-rec').innerHTML=`<thead><tr><th>Player</th><th>Age</th><th>Date</th><th>Squat</th><th>Hinge</th><th>Split Squat</th><th>Push-up</th></tr></thead><tbody>`+
     allRows.slice(0,25).map(s=>`<tr><td style="font-weight:600">${s.player}</td><td>${ageBadge(s.age)}</td><td style="color:#888">${s.date||'—'}</td><td>${rpill(s.squat||0)}</td><td>${rpill(s.hinge||0)}</td><td>${rpill(s.splitSquat||0)}</td><td>${rpill(s.pushups||0)}</td></tr>`).join('')+'</tbody>';
 }
