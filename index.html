@@ -603,7 +603,14 @@ tr:last-child td{border-bottom:none}
       <span class="cl">Season:</span>
       <select class="ctrl" id="rank-season" onchange="renderRank()"><option value="all">All Seasons</option></select>
       <span class="cl">Age:</span>
-      <select class="ctrl" id="rank-age" onchange="renderRank()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
+      <div id="rank-age-pills" style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="age-pill active" data-age="all" onclick="toggleRankAgePill(this)">All</button>
+        <button class="age-pill" data-age="U13" onclick="toggleRankAgePill(this)">U13</button>
+        <button class="age-pill" data-age="U14" onclick="toggleRankAgePill(this)">U14</button>
+        <button class="age-pill" data-age="U15" onclick="toggleRankAgePill(this)">U15</button>
+        <button class="age-pill" data-age="U16" onclick="toggleRankAgePill(this)">U16</button>
+        <button class="age-pill" data-age="U18" onclick="toggleRankAgePill(this)">U18</button>
+      </div>
       <span class="cl">Pos:</span>
       <select class="ctrl" id="rank-pos" onchange="renderRank()"><option value="all">All</option><option value="CB">CB</option><option value="FW">FW</option><option value="FB">FB</option><option value="GK">GK</option><option value="MF">MF</option></select>
       <span class="cl">Rank by:</span>
@@ -1807,15 +1814,30 @@ function renderMAS(){
 }
 
 // ── RANKINGS ──────────────────────────────────────────────────────
+function toggleRankAgePill(btn){
+  const pills=[...document.querySelectorAll('#rank-age-pills .age-pill')];
+  if(btn.dataset.age==='all'){
+    pills.forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+  } else {
+    pills.find(p=>p.dataset.age==='all')?.classList.remove('active');
+    btn.classList.toggle('active');
+    if(!pills.some(p=>p.classList.contains('active'))){
+      pills.find(p=>p.dataset.age==='all')?.classList.add('active');
+    }
+  }
+  renderRank();
+}
 function initRankings(){renderRank();}
 function renderRank(){
-  const ageF=document.getElementById('rank-age').value;
+  const rankAgePills=[...document.querySelectorAll('#rank-age-pills .age-pill.active')].map(b=>b.dataset.age);
+  const ageAll=rankAgePills.length===0||rankAgePills.includes('all');
   const posF=document.getElementById('rank-pos').value;
   const rankBy=document.getElementById('rank-by').value;
   const seasonF=document.getElementById('rank-season')?.value||'all';
   const parts=rankBy.split('-');const cat=parts[0];const sub=parts[1];const key=parts.slice(1).join('-');
   let ranked=[];
-  function fa(age){return ageF==='all'||age===ageF;}
+  function fa(age){return ageAll||rankAgePills.includes(age);}
   const dn=s=>String(s||'').trim().toLowerCase();
   const sf=arr=>(arr||[]).filter(r=>inSeason(r.date,seasonF));
   if(cat==='sprint'){ranked=Object.entries(SPRINT).map(([n,arr])=>{const a=sf(arr).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>(a[key]||99)-(b[key]||99))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b[key]||99};}).filter(Boolean).filter(r=>r.val<99).sort((a,b)=>a.val-b.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(3)+'s',lower:true}));}
