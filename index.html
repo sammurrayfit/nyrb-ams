@@ -1680,9 +1680,9 @@ function renderBroad(){
   // Build one record per player, then deduplicate by normalized name keeping best dist
   const rawPlayers=Object.entries(BROAD).map(([name,arr])=>{
     if(!arr||!arr.length)return null;
-    const filtered=arr.filter(r=>inSeason(r.date,seasonF));
-    if(!filtered.length)return null;
-    const rec=resultF==='recent'?filtered[filtered.length-1]:[...filtered].sort((a,b)=>(b.dist||0)-(a.dist||0))[0];
+    const deduped=bestPerDate(arr.filter(r=>inSeason(r.date,seasonF)),(a,b)=>(a.dist||0)>(b.dist||0));
+    if(!deduped.length)return null;
+    const rec=resultF==='recent'?deduped[deduped.length-1]:[...deduped].sort((a,b)=>(b.dist||0)-(a.dist||0))[0];
     if(!rec||!rec.dist)return null;
     return{name,normName:name.toLowerCase().replace(/\s+/g,' ').trim(),age:rec.age||arr[0]?.age,pos:PM[name]||'?',dist:+rec.dist,date:rec.date};
   }).filter(Boolean).filter(p=>ageMatch(p.age,f));
@@ -1707,6 +1707,12 @@ function renderBroad(){
 }
 function ageF(){const el=document.getElementById('test-age');const s=[...el.selectedOptions].map(o=>o.value);return s.includes('all')||!s.length?'all':s;}
 function ageMatch(age,f){return f==='all'||f.includes(age);}
+// For each date keep only the best attempt. betterFn(a,b) returns true if a beats b.
+function bestPerDate(arr,betterFn){
+  const byDate={};
+  arr.forEach(r=>{const d=r.date||'';if(!byDate[d]||betterFn(r,byDate[d]))byDate[d]=r;});
+  return Object.values(byDate).sort((a,b)=>parseDate(a.date)-parseDate(b.date));
+}
 function renderTesting(){
   const f=ageF();const sortBy=document.getElementById('test-sort').value;
   const resultF=document.getElementById('test-result')?.value||'best';
@@ -1718,9 +1724,9 @@ function renderTesting(){
     document.getElementById('test-split1-panel').style.display='none';
     document.getElementById('test-splits-row2').style.display='none';
     const players=Object.entries(T505).map(([n,arr])=>{
-      const filtered=arr.filter(r=>inSeason(r.date,seasonF));
-      if(!filtered.length)return null;
-      const b=resultF==='recent'?filtered[filtered.length-1]:[...filtered].sort((a,b)=>a.time-b.time)[0];
+      const deduped=bestPerDate(arr.filter(r=>inSeason(r.date,seasonF)),(a,b)=>(a.time||99)<(b.time||99));
+      if(!deduped.length)return null;
+      const b=resultF==='recent'?deduped[deduped.length-1]:[...deduped].sort((a,b)=>a.time-b.time)[0];
       if(!b)return null;return{name:n,age:b.age,...b};
     }).filter(Boolean).filter(p=>ageMatch(p.age,f)).sort((a,b)=>a.time-b.time);
     const names=players.map(p=>p.name.split(' ')[0]);
@@ -1733,9 +1739,9 @@ function renderTesting(){
   document.getElementById('test-split1-panel').style.display='';
   document.getElementById('test-splits-row2').style.display='';
   let players=Object.entries(SPRINT).map(([n,arr])=>{
-    const filtered=arr.filter(r=>inSeason(r.date,seasonF));
-    if(!filtered.length)return null;
-    const b=resultF==='recent'?filtered[filtered.length-1]:[...filtered].sort((a,b)=>a.total-b.total)[0];
+    const deduped=bestPerDate(arr.filter(r=>inSeason(r.date,seasonF)),(a,b)=>(a.total||99)<(b.total||99));
+    if(!deduped.length)return null;
+    const b=resultF==='recent'?deduped[deduped.length-1]:[...deduped].sort((a,b)=>a.total-b.total)[0];
     if(!b)return null;return{name:n,age:b.age,...b};
   }).filter(Boolean).filter(p=>ageMatch(p.age,f));
   players.sort((a,b)=>(a[sortBy]||99)-(b[sortBy]||99));
@@ -1783,9 +1789,9 @@ function renderMAS(){
     .filter(([name])=>!name.toLowerCase().includes('avg')&&!name.toLowerCase().includes('team'))
     .map(([name,records])=>{
       if(!records||!records.length)return null;
-      const filtered=records.filter(r=>inSeason(r.date,seasonF));
-      if(!filtered.length)return null;
-      const rec=resultF==='recent'?filtered[filtered.length-1]:[...filtered].filter(r=>r.mas!=null).sort((a,b)=>b.mas-a.mas)[0];
+      const deduped=bestPerDate(records.filter(r=>inSeason(r.date,seasonF)),(a,b)=>(a.mas||0)>(b.mas||0));
+      if(!deduped.length)return null;
+      const rec=resultF==='recent'?deduped[deduped.length-1]:[...deduped].filter(r=>r.mas!=null).sort((a,b)=>b.mas-a.mas)[0];
       if(!rec)return null;
       return{name,age:rec.age||null,pos:PM[name]||'?',distance:rec.distance,time:rec.time,mas:rec.mas};
     }).filter(Boolean).filter(p=>ageMatch(p.age,f));
