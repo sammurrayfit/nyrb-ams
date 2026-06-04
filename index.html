@@ -1610,6 +1610,7 @@ function renderVald(){
   const sprintD=bestPerDate(fr(SPRINT[pn]||[]).filter(r=>r.total!=null),(a,b)=>(a.total||99)<(b.total||99));
   const t505D=bestPerDate(fr(T505[pn]||[]).filter(r=>r.time!=null),(a,b)=>(a.time||99)<(b.time||99));
   const masD=bestPerDate(fr(MAS_DATA[pn]||[]).filter(r=>r.mas!=null),(a,b)=>(a.mas||0)>(b.mas||0));
+  const broadD=bestPerDate(fr(BROAD[pn]||[]).filter(r=>r.dist!=null),(a,b)=>(a.dist||0)>(b.dist||0));
   const dn=s=>String(s||'').trim().toLowerCase();
   const hipAbd=hipAll.filter(r=>dn(r.direction)==='pull');
   const hipAdd=hipAll.filter(r=>dn(r.direction)==='squeeze');
@@ -1651,6 +1652,16 @@ function renderVald(){
       <div style="position:relative;height:240px"><canvas id="vc-hip-add"></canvas></div>
       ${addD.length?vmtable(lAdd.lMax,lAdd.rMax,'Hip Adduction'):'<div style="color:#666;padding:10px">No data</div>'}
     </div>
+    <div class="vp">
+      <div class="vpt">Broad Jump <span>— ${pn}</span></div>
+      <div style="position:relative;height:240px"><canvas id="vc-broad"></canvas></div>
+      ${broadD.length?`<table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Distance (cm)</th></tr></thead><tbody>
+        ${broadD.map(r=>`<tr>
+          <td style="color:#888">${r.date||'—'}</td>
+          <td style="font-family:var(--font);font-size:17px;font-weight:700">${r.dist!=null?r.dist.toFixed(1):'—'} cm</td>
+        </tr>`).join('')}
+      </tbody></table>`:'<div style="color:#666;padding:10px">No broad jump data</div>'}
+    </div>
     <div class="vp vpf">
       <div class="vpt">30m Sprint <span>— ${pn}</span></div>
       <div style="position:relative;height:240px"><canvas id="vc-sprint"></canvas></div>
@@ -1689,6 +1700,7 @@ function renderVald(){
   if(nbDD.length)mkValdGrpBar('vc-nb',nbDD.map(dlbl),grpDs(nbDD));
   if(abdD.length)mkValdGrpBar('vc-hip-abd',abdD.map(dlbl),grpDs(abdD));
   if(addD.length)mkValdGrpBar('vc-hip-add',addD.map(dlbl),grpDs(addD));
+  if(broadD.length)mkValdBar('vc-broad',broadD.map(dlbl),broadD.map(r=>r.dist),'#cc0000','rgba(204,0,0,0.2)');
   if(sprintD.length)mkValdBar('vc-sprint',sprintD.map(dlbl),sprintD.map(r=>r.total),'#444','rgba(68,68,68,0.2)');
   if(t505D.length)mkValdBar('vc-505',t505D.map(dlbl),t505D.map(r=>r.time),'#444','rgba(68,68,68,0.2)');
   const mCol=v=>v>=5?'#007a30':v>=4.5?'#5a9000':v>=4?'#d4a000':v>=3.5?'#e05000':'#cc0000';
