@@ -1608,6 +1608,7 @@ function renderVald(){
   const hipAll=fr(VALD[pn]||[]).filter(r=>r.lMax>0||r.rMax>0);
   const sprintD=bestPerDate(fr(SPRINT[pn]||[]).filter(r=>r.total!=null),(a,b)=>(a.total||99)<(b.total||99));
   const t505D=bestPerDate(fr(T505[pn]||[]).filter(r=>r.time!=null),(a,b)=>(a.time||99)<(b.time||99));
+  const masD=bestPerDate(fr(MAS_DATA[pn]||[]).filter(r=>r.mas!=null),(a,b)=>(a.mas||0)>(b.mas||0));
   const dn=s=>String(s||'').trim().toLowerCase();
   const hipAbd=hipAll.filter(r=>dn(r.direction)==='pull');
   const hipAdd=hipAll.filter(r=>dn(r.direction)==='squeeze');
@@ -1671,6 +1672,17 @@ function renderVald(){
           <td style="font-family:var(--font);font-size:17px;font-weight:700">${r.time!=null?r.time.toFixed(3):'—'}</td>
         </tr>`).join('')}
       </tbody></table>`:'<div style="color:#666;padding:10px">No 5-0-5 data</div>'}
+    </div>
+    <div class="vp vpf">
+      <div class="vpt">MAS <span>— ${pn}</span></div>
+      <div style="position:relative;height:240px"><canvas id="vc-mas"></canvas></div>
+      ${masD.length?`<table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Distance (m)</th><th>MAS Score</th></tr></thead><tbody>
+        ${masD.map(r=>`<tr>
+          <td style="color:#888">${r.date||'—'}</td>
+          <td>${r.distance!=null?r.distance:'—'}</td>
+          <td style="font-family:var(--font);font-size:17px;font-weight:700;color:${r.mas>=5?'#007a30':r.mas>=4.5?'#5a9000':r.mas>=4?'#d4a000':r.mas>=3.5?'#e05000':'#cc0000'}">${r.mas!=null?r.mas:'—'}</td>
+        </tr>`).join('')}
+      </tbody></table>`:'<div style="color:#666;padding:10px">No MAS data</div>'}
     </div>`;
   if(cmjD.length)mkValdCMJ('vc-cmj',cmjD.map(dlbl),cmjD.map(r=>r.height),cmjD.map(r=>r.rsi));
   if(nbDD.length)mkValdGrpBar('vc-nb',nbDD.map(dlbl),grpDs(nbDD));
@@ -1678,6 +1690,8 @@ function renderVald(){
   if(addD.length)mkValdGrpBar('vc-hip-add',addD.map(dlbl),grpDs(addD));
   if(sprintD.length)mkValdBar('vc-sprint',sprintD.map(dlbl),sprintD.map(r=>r.total),'#444','rgba(68,68,68,0.2)');
   if(t505D.length)mkValdBar('vc-505',t505D.map(dlbl),t505D.map(r=>r.time),'#444','rgba(68,68,68,0.2)');
+  const mCol=v=>v>=5?'#007a30':v>=4.5?'#5a9000':v>=4?'#d4a000':v>=3.5?'#e05000':'#cc0000';
+  if(masD.length)mkBarM('vc-mas',masD.map(dlbl),masD.map(r=>r.mas),masD.map(r=>mCol(r.mas)),masD.map(r=>mCol(r.mas)+'55'));
 }
 
 // ── TESTING ───────────────────────────────────────────────────────
