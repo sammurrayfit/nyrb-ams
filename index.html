@@ -514,6 +514,9 @@ tr:last-child td{border-bottom:none}
         <optgroup label="Agility"><option value="t505">5-0-5</option></optgroup>
         <optgroup label="Power"><option value="broad">Broad Jump</option></optgroup>
         <optgroup label="Aerobic"><option value="mas">MAS</option></optgroup>
+        <optgroup label="CMJ"><option value="cmj">CMJ</option></optgroup>
+        <optgroup label="NordBord"><option value="nordbord">NordBord</option></optgroup>
+        <optgroup label="Hip Force"><option value="hipforce">Hip Force</option></optgroup>
       </select>
       <span class="cl">Result:</span>
       <select class="ctrl" id="test-result" onchange="onTestChange()">
@@ -552,6 +555,22 @@ tr:last-child td{border-bottom:none}
     <div id="test-broad-section" style="display:none">
       <div class="panel sg"><div class="pt">Broad Jump — Best Distance (cm)</div><div class="cb-lg"><canvas id="c-broad"></canvas></div></div>
       <div class="panel sg" style="margin-top:8px"><div class="pt ptl">Results</div><div class="tw"><table id="tbl-broad"></table></div></div>
+    </div>
+    <div id="test-cmj-section" style="display:none">
+      <div class="pg g2 sg">
+        <div class="panel"><div class="pt">CMJ — Jump Height (cm)</div><div class="cb-lg"><canvas id="c-test-cmj-h"></canvas></div></div>
+        <div class="panel"><div class="pt">CMJ — RSI-mod</div><div class="cb-lg"><canvas id="c-test-cmj-rsi"></canvas></div></div>
+      </div>
+      <div class="panel sg"><div class="pt ptl">Results</div><div class="tw"><table id="tbl-cmj-squad"></table></div></div>
+    </div>
+    <div id="test-nb-section" style="display:none">
+      <div class="panel sg"><div class="pt">NordBord — Max Force (N)</div><div class="cb-lg"><canvas id="c-test-nb"></canvas></div></div>
+      <div class="panel sg" style="margin-top:8px"><div class="pt ptl">Results</div><div class="tw"><table id="tbl-nb-squad"></table></div></div>
+    </div>
+    <div id="test-hip-section" style="display:none">
+      <div class="ctrl-row"><span class="cl">Direction:</span><select class="ctrl" id="hip-dir" onchange="renderHipSquad()"><option value="abd">Abduction (Pull)</option><option value="add">Adduction (Squeeze)</option></select></div>
+      <div class="panel sg"><div class="pt" id="hip-chart-title">Hip Force (N)</div><div class="cb-lg"><canvas id="c-test-hip"></canvas></div></div>
+      <div class="panel sg" style="margin-top:8px"><div class="pt ptl">Results</div><div class="tw"><table id="tbl-hip-squad"></table></div></div>
     </div>
   </div>
 </div>
@@ -1586,8 +1605,8 @@ function renderVald(){
   const cmjD=fr(CMJ[pn]||[]);
   const nbD=fr(NB[pn]||[]);
   const hipAll=fr(VALD[pn]||[]).filter(r=>r.lMax>0||r.rMax>0);
-  const sprintD=fr(SPRINT[pn]||[]).filter(r=>r.total!=null);
-  const t505D=fr(T505[pn]||[]).filter(r=>r.time!=null);
+  const sprintD=bestPerDate(fr(SPRINT[pn]||[]).filter(r=>r.total!=null),(a,b)=>(a.total||99)<(b.total||99));
+  const t505D=bestPerDate(fr(T505[pn]||[]).filter(r=>r.time!=null),(a,b)=>(a.time||99)<(b.time||99));
   const dn=s=>String(s||'').trim().toLowerCase();
   const hipAbd=hipAll.filter(r=>dn(r.direction)==='pull');
   const hipAdd=hipAll.filter(r=>dn(r.direction)==='squeeze');
@@ -1646,7 +1665,7 @@ function renderVald(){
       <div class="vpt">5-0-5 Agility <span>— ${pn}</span></div>
       <div style="position:relative;height:240px"><canvas id="vc-505"></canvas></div>
       ${t505D.length?`<table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Time (s)</th></tr></thead><tbody>
-        ${[...t505D].sort((a,b)=>(a.time||99)-(b.time||99)).slice(0,8).map(r=>`<tr>
+        ${t505D.map(r=>`<tr>
           <td style="color:#888">${r.date||'—'}</td>
           <td style="font-family:var(--font);font-size:17px;font-weight:700">${r.time!=null?r.time.toFixed(3):'—'}</td>
         </tr>`).join('')}
@@ -1664,13 +1683,13 @@ function renderVald(){
 function initTesting(){}
 function onTestChange(){
   const val=document.getElementById('test-sort').value;
-  document.getElementById('test-sprint-section').style.display='none';
-  document.getElementById('test-mas-section').style.display='none';
-  document.getElementById('test-broad-section').style.display='none';
-  document.getElementById('test-placeholder').style.display='none';
+  ['test-sprint-section','test-mas-section','test-broad-section','test-cmj-section','test-nb-section','test-hip-section','test-placeholder'].forEach(id=>document.getElementById(id).style.display='none');
   if(!val){document.getElementById('test-placeholder').style.display='block';return;}
   if(val==='mas'){document.getElementById('test-mas-section').style.display='block';renderMAS();}
   else if(val==='broad'){document.getElementById('test-broad-section').style.display='block';renderBroad();}
+  else if(val==='cmj'){document.getElementById('test-cmj-section').style.display='block';renderCMJSquad();}
+  else if(val==='nordbord'){document.getElementById('test-nb-section').style.display='block';renderNBSquad();}
+  else if(val==='hipforce'){document.getElementById('test-hip-section').style.display='block';renderHipSquad();}
   else{document.getElementById('test-sprint-section').style.display='block';renderTesting();}
 }
 function renderBroad(){
@@ -1819,6 +1838,82 @@ function renderMAS(){
     </tr>`).join('')+'</tbody>';
 }
 
+function renderCMJSquad(){
+  const f=ageF(),resultF=document.getElementById('test-result')?.value||'best',seasonF=document.getElementById('test-season')?.value||'all';
+  const players=Object.entries(CMJ).map(([n,arr])=>{
+    const d=bestPerDate(arr.filter(r=>inSeason(r.date,seasonF)),(a,b)=>(a.height||0)>(b.height||0));
+    if(!d.length)return null;
+    const b=resultF==='recent'?d[d.length-1]:[...d].sort((a,b)=>b.height-a.height)[0];
+    if(!b||!b.height)return null;
+    return{name:n,age:b.age,pos:PM[n]||'?',height:b.height,rsi:b.rsi,power:b.power,date:b.date};
+  }).filter(Boolean).filter(p=>ageMatch(p.age,f)).sort((a,b)=>b.height-a.height);
+  const cols=players.map(p=>PC[p.pos]||'#888');
+  mkBarM('c-test-cmj-h',players.map(p=>p.name.split(' ')[0]),players.map(p=>p.height),cols,cols.map(c=>c+'55'));
+  mkBarM('c-test-cmj-rsi',players.map(p=>p.name.split(' ')[0]),players.map(p=>p.rsi),cols,cols.map(c=>c+'55'));
+  document.getElementById('tbl-cmj-squad').innerHTML=
+    `<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Height (cm)</th><th>RSI-mod</th><th>Power (W/kg)</th><th>Date</th></tr></thead><tbody>`+
+    players.map((p,i)=>`<tr>
+      <td><span class="rn ${i<3?'top':''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</span></td>
+      <td style="font-weight:600">${p.name}</td><td>${ageBadge(p.age)}</td><td>${posBadge(p.pos)}</td>
+      <td style="font-family:var(--font);font-size:16px;font-weight:800;color:${i<3?'#cc0000':'#1a1a1a'}">${p.height?.toFixed(1)||'—'} cm</td>
+      <td style="font-family:var(--font);font-size:14px;font-weight:700">${p.rsi?.toFixed(3)||'—'}</td>
+      <td>${p.power?.toFixed(1)||'—'} W/kg</td>
+      <td style="color:#888;font-size:12px">${p.date||'—'}</td>
+    </tr>`).join('')+'</tbody>';
+}
+function renderNBSquad(){
+  const f=ageF(),resultF=document.getElementById('test-result')?.value||'best',seasonF=document.getElementById('test-season')?.value||'all';
+  const players=Object.entries(NB).map(([n,arr])=>{
+    const d=bestPerDate(arr.filter(r=>inSeason(r.date,seasonF)),(a,b)=>((a.lMax||0)+(a.rMax||0))>((b.lMax||0)+(b.rMax||0)));
+    if(!d.length)return null;
+    const b=resultF==='recent'?d[d.length-1]:[...d].sort((a,c)=>((c.lMax||0)+(c.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];
+    if(!b||(!b.lMax&&!b.rMax))return null;
+    const bilateral=+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2;
+    return{name:n,age:b.age,pos:PM[n]||'?',left:b.lMax,right:b.rMax,bilateral,date:b.date};
+  }).filter(Boolean).filter(p=>ageMatch(p.age,f)).sort((a,b)=>b.bilateral-a.bilateral);
+  const names=players.map(p=>p.name.split(' ')[0]);
+  mkGrpBar('c-test-nb',names,[
+    {label:'Left',data:players.map(p=>p.left),backgroundColor:'rgba(68,68,68,0.5)',borderColor:'#444',borderWidth:1,borderRadius:2},
+    {label:'Right',data:players.map(p=>p.right),backgroundColor:'rgba(204,0,0,0.5)',borderColor:'#cc0000',borderWidth:1,borderRadius:2}]);
+  document.getElementById('tbl-nb-squad').innerHTML=
+    `<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Left (N)</th><th>Right (N)</th><th>Bilateral Avg</th><th>Date</th></tr></thead><tbody>`+
+    players.map((p,i)=>`<tr>
+      <td><span class="rn ${i<3?'top':''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</span></td>
+      <td style="font-weight:600">${p.name}</td><td>${ageBadge(p.age)}</td><td>${posBadge(p.pos)}</td>
+      <td>${p.left?.toFixed(1)||'—'}</td><td>${p.right?.toFixed(1)||'—'}</td>
+      <td style="font-family:var(--font);font-size:16px;font-weight:800;color:${i<3?'#cc0000':'#1a1a1a'}">${p.bilateral.toFixed(1)} N</td>
+      <td style="color:#888;font-size:12px">${p.date||'—'}</td>
+    </tr>`).join('')+'</tbody>';
+}
+function renderHipSquad(){
+  const f=ageF(),resultF=document.getElementById('test-result')?.value||'best',seasonF=document.getElementById('test-season')?.value||'all';
+  const dir=document.getElementById('hip-dir')?.value||'abd';
+  const mapped=dir==='abd'?'pull':'squeeze';
+  document.getElementById('hip-chart-title').textContent=`Hip ${dir==='abd'?'Abduction (Pull)':'Adduction (Squeeze)'} — Force (N)`;
+  const dn=s=>String(s||'').trim().toLowerCase();
+  const players=Object.entries(VALD).map(([n,arr])=>{
+    const filtered=arr.filter(r=>inSeason(r.date,seasonF)&&dn(r.direction)===mapped&&(r.lMax>0||r.rMax>0));
+    const d=bestPerDate(filtered,(a,b)=>((a.lMax||0)+(a.rMax||0))>((b.lMax||0)+(b.rMax||0)));
+    if(!d.length)return null;
+    const b=resultF==='recent'?d[d.length-1]:[...d].sort((a,c)=>((c.lMax||0)+(c.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];
+    if(!b||(!b.lMax&&!b.rMax))return null;
+    const bilateral=+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2;
+    return{name:n,age:b.age,pos:PM[n]||'?',left:b.lMax,right:b.rMax,bilateral,date:b.date};
+  }).filter(Boolean).filter(p=>ageMatch(p.age,f)).sort((a,b)=>b.bilateral-a.bilateral);
+  const names=players.map(p=>p.name.split(' ')[0]);
+  mkGrpBar('c-test-hip',names,[
+    {label:'Left',data:players.map(p=>p.left),backgroundColor:'rgba(68,68,68,0.5)',borderColor:'#444',borderWidth:1,borderRadius:2},
+    {label:'Right',data:players.map(p=>p.right),backgroundColor:'rgba(204,0,0,0.5)',borderColor:'#cc0000',borderWidth:1,borderRadius:2}]);
+  document.getElementById('tbl-hip-squad').innerHTML=
+    `<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Left (N)</th><th>Right (N)</th><th>Bilateral Avg</th><th>Date</th></tr></thead><tbody>`+
+    players.map((p,i)=>`<tr>
+      <td><span class="rn ${i<3?'top':''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</span></td>
+      <td style="font-weight:600">${p.name}</td><td>${ageBadge(p.age)}</td><td>${posBadge(p.pos)}</td>
+      <td>${p.left?.toFixed(1)||'—'}</td><td>${p.right?.toFixed(1)||'—'}</td>
+      <td style="font-family:var(--font);font-size:16px;font-weight:800;color:${i<3?'#cc0000':'#1a1a1a'}">${p.bilateral.toFixed(1)} N</td>
+      <td style="color:#888;font-size:12px">${p.date||'—'}</td>
+    </tr>`).join('')+'</tbody>';
+}
 // ── RANKINGS ──────────────────────────────────────────────────────
 function toggleRankAgePill(btn){
   const pills=[...document.querySelectorAll('#rank-age-pills .age-pill')];
