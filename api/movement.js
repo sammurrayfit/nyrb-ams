@@ -6,16 +6,17 @@ module.exports = async (req, res) => {
     const rows = await fetchSheet('Movement_Screen');
     const byPlayer = {};
     rows.forEach(row => {
-      const player = `${row['GivenName'] || ''} ${row['FamilyName'] || ''}`.trim();
+      const get = (key) => { const k = Object.keys(row).find(k => k.toLowerCase() === key.toLowerCase()); return k ? row[k] : undefined; };
+      const player = `${get('givenname') || ''} ${get('familyname') || ''}`.trim();
       if (!player) return;
       if (!byPlayer[player]) byPlayer[player] = [];
       byPlayer[player].push({
-        date:       row['Date'] || null,
-        age:        row['Age Group'] || null,
-        squat:      toNum(row['Squat']),
-        hinge:      toNum(row['Hinge hands on hips']),
-        splitSquat: toNum(row['Split squat']),
-        pushups:    toNum(row['Pushups']),
+        date:       get('date') || null,
+        age:        get('age group') || null,
+        squat:      toNum(get('squat')),
+        hinge:      toNum(get('hinge hands on hips')),
+        splitSquat: toNum(get('split squat')),
+        pushups:    toNum(get('pushups')),
       });
     });
     Object.keys(byPlayer).forEach(p => {
