@@ -2158,11 +2158,11 @@ async function exportPDF(pageId){
   try{
     const canvas=await html2canvas(page,{scale:CS,useCORS:true,backgroundColor:'#f0f0f0',logging:false,scrollY:0});
     const {jsPDF}=window.jspdf;
-    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a3'});
     const pgW=pdf.internal.pageSize.getWidth();
     const pgH=pdf.internal.pageSize.getHeight();
-    const margin=8;
-    const headerH=18;
+    const margin=10;
+    const headerH=22;
     const usableW=pgW-margin*2;
     const usableH=pgH-headerH-margin;
     const mmPerPx=usableW/(canvas.width/CS);
@@ -2184,21 +2184,21 @@ async function exportPDF(pageId){
       if(isVald){
         const pn=document.getElementById('vald-player')?.value||'';
         const dr=document.getElementById('vald-date-range')?.options[document.getElementById('vald-date-range').selectedIndex]?.text||'';
-        pdf.setFontSize(8);pdf.text('RBNY ACADEMY TESTING',margin,7);
-        pdf.setFontSize(16);pdf.text(pn,pgW/2,12,{align:'center'});
-        pdf.setFontSize(8);pdf.text(dr,pgW-margin,7,{align:'right'});
+        pdf.setFontSize(10);pdf.text('RBNY ACADEMY TESTING',margin,9);
+        pdf.setFontSize(18);pdf.text(pn,pgW/2,15,{align:'center'});
+        pdf.setFontSize(10);pdf.text(dr,pgW-margin,9,{align:'right'});
       }else if(pageId==='page-matchday'){
         const mdSel=document.getElementById('md-sel');
         const matchLabel=mdSel?.options[mdSel.selectedIndex]?.text||'';
-        pdf.setFontSize(14);pdf.text('RBNY ACADEMY — MATCH REPORT',pgW/2,11,{align:'center'});
-        pdf.setFontSize(8);pdf.text(matchLabel,pgW-margin,7,{align:'right'});
+        pdf.setFontSize(16);pdf.text('RBNY ACADEMY — MATCH REPORT',pgW/2,14,{align:'center'});
+        pdf.setFontSize(10);pdf.text(matchLabel,pgW-margin,9,{align:'right'});
       }else{
         const dateEl=document.getElementById('g-date');
         const dt=dateEl?.options[dateEl.selectedIndex]?.text||'';
-        pdf.setFontSize(14);pdf.text('RBNY ACADEMY — DAILY REPORT',pgW/2,11,{align:'center'});
-        pdf.setFontSize(8);pdf.text(dt,pgW-margin,7,{align:'right'});
+        pdf.setFontSize(16);pdf.text('RBNY ACADEMY — DAILY REPORT',pgW/2,14,{align:'center'});
+        pdf.setFontSize(10);pdf.text(dt,pgW-margin,9,{align:'right'});
       }
-      if(pg>1){pdf.setFontSize(8);pdf.text(''+pg,margin,12);}
+      if(pg>1){pdf.setFontSize(10);pdf.text(''+pg,margin,15);}
     };
 
     slices.forEach(({s,e},i)=>{
