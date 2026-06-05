@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
     const rows = await fetchSheet('505_Testing');
     const byPlayer = {};
     rows.forEach(row => {
-      const player = row['Name'];
+      const player = `${row['GivenName'] || ''} ${row['FamilyName'] || ''}`.trim();
       if (!player) return;
       if (!byPlayer[player]) byPlayer[player] = [];
       byPlayer[player].push({
