@@ -15,7 +15,7 @@ module.exports = async (req, res) => {
         age:        get('age group') || null,
         squat:      toNum(get('squat')),
         hinge:      toNum(get('hinge hands on hips')),
-        splitSquat: toNum(get('split squat')),
+        splitSquat: toNum(get('split squats')),
         pushups:    toNum(get('pushups')),
       });
     });
