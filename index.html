@@ -2143,6 +2143,7 @@ async function exportPDF(pageId){
   ].filter(Boolean);
   toHide.forEach(el=>{el._ph=el.style.display;el.style.display='none';});
 
+  const CS=3;
   // For VALD: measure the sprint card's top relative to page element (before capture)
   let splitCanvasPx=null;
   if(isVald){
@@ -2150,12 +2151,11 @@ async function exportPDF(pageId){
     if(sprintCard){
       const pTop=page.getBoundingClientRect().top;
       const cTop=sprintCard.getBoundingClientRect().top;
-      splitCanvasPx=Math.round((cTop-pTop)*1.5);
+      splitCanvasPx=Math.round((cTop-pTop)*CS);
     }
   }
 
   try{
-    const CS=1.5;
     const canvas=await html2canvas(page,{scale:CS,useCORS:true,backgroundColor:'#f0f0f0',logging:false,scrollY:0});
     const {jsPDF}=window.jspdf;
     const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
@@ -2187,6 +2187,11 @@ async function exportPDF(pageId){
         pdf.setFontSize(8);pdf.text('RBNY ACADEMY TESTING',margin,7);
         pdf.setFontSize(16);pdf.text(pn,pgW/2,12,{align:'center'});
         pdf.setFontSize(8);pdf.text(dr,pgW-margin,7,{align:'right'});
+      }else if(pageId==='page-matchday'){
+        const mdSel=document.getElementById('md-sel');
+        const matchLabel=mdSel?.options[mdSel.selectedIndex]?.text||'';
+        pdf.setFontSize(14);pdf.text('RBNY ACADEMY — MATCH REPORT',pgW/2,11,{align:'center'});
+        pdf.setFontSize(8);pdf.text(matchLabel,pgW-margin,7,{align:'right'});
       }else{
         const dateEl=document.getElementById('g-date');
         const dt=dateEl?.options[dateEl.selectedIndex]?.text||'';
