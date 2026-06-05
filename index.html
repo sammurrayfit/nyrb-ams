@@ -2027,8 +2027,8 @@ function renderMSOv(){
   const rows=[];
   Object.entries(MS_DATA).forEach(([name,arr])=>{
     if(!arr||!arr.length)return;
-    if(ageF!=='all'&&arr[0]?.age!==ageF)return;
     const sorted=[...arr].sort((a,b)=>parseDate(b.date)-parseDate(a.date));
+    if(ageF!=='all'&&sorted[0]?.age!==ageF)return;
     if(dateF==='latest')rows.push({player:name,...sorted[0]});
     else sorted.forEach(s=>rows.push({player:name,...s}));
   });

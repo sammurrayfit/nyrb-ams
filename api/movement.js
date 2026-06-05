@@ -14,7 +14,7 @@ module.exports = async (req, res) => {
         age:        row['Age Group'] || null,
         squat:      toNum(row['Squat']),
         hinge:      toNum(row['Hinge hands on hips']),
-        splitSquat: toNum(row['Split squats']),
+        splitSquat: toNum(row['Split squat']),
         pushups:    toNum(row['Pushups']),
       });
     });
