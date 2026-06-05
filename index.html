@@ -1933,7 +1933,7 @@ function renderNBSquad(){
     if(!d.length)return null;
     const b=resultF==='recent'?d[d.length-1]:[...d].sort((a,c)=>((c.lMax||0)+(c.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];
     if(!b||(!b.lMax&&!b.rMax))return null;
-    const bilateral=+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2;
+    const bilateral=+((b.lMax||0)+(b.rMax||0)).toFixed(1);
     return{name:n,age:b.age,pos:PM[n]||'?',left:b.lMax,right:b.rMax,bilateral,date:b.date};
   }).filter(Boolean).filter(p=>ageMatch(p.age,f)).sort((a,b)=>b.bilateral-a.bilateral);
   const names=players.map(p=>p.name.split(' ')[0]);
@@ -1941,7 +1941,7 @@ function renderNBSquad(){
     {label:'Left',data:players.map(p=>p.left),backgroundColor:'rgba(68,68,68,0.5)',borderColor:'#444',borderWidth:1,borderRadius:2},
     {label:'Right',data:players.map(p=>p.right),backgroundColor:'rgba(204,0,0,0.5)',borderColor:'#cc0000',borderWidth:1,borderRadius:2}]);
   document.getElementById('tbl-nb-squad').innerHTML=
-    `<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Left (N)</th><th>Right (N)</th><th>Bilateral Avg</th><th>Date</th></tr></thead><tbody>`+
+    `<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Left (N)</th><th>Right (N)</th><th>Bilateral Force</th><th>Date</th></tr></thead><tbody>`+
     players.map((p,i)=>`<tr>
       <td><span class="rn ${i<3?'top':''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</span></td>
       <td style="font-weight:600">${p.name}</td><td>${ageBadge(p.age)}</td><td>${posBadge(p.pos)}</td>
@@ -1968,13 +1968,13 @@ function renderHipSquad(){
       if(!d.length)return null;
       const b=resultF==='recent'?d[d.length-1]:[...d].sort((a,c)=>((c.lMax||0)+(c.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];
       if(!b||(!b.lMax&&!b.rMax))return null;
-      return{name:n,age:b.age,pos:PM[n]||'?',left:b.lMax,right:b.rMax,bilateral:+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2,date:b.date};
+      return{name:n,age:b.age,pos:PM[n]||'?',left:b.lMax,right:b.rMax,bilateral:+((b.lMax||0)+(b.rMax||0)).toFixed(1),date:b.date};
     }).filter(Boolean).filter(p=>ageMatch(p.age,f)).sort((a,b)=>b.bilateral-a.bilateral);
     mkGrpBar(chartId,players.map(p=>p.name.split(' ')[0]),[
       {label:'Left',data:players.map(p=>p.left),backgroundColor:'rgba(68,68,68,0.5)',borderColor:'#444',borderWidth:1,borderRadius:2},
       {label:'Right',data:players.map(p=>p.right),backgroundColor:'rgba(204,0,0,0.5)',borderColor:'#cc0000',borderWidth:1,borderRadius:2}]);
     document.getElementById(tableId).innerHTML=
-      `<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Left (N)</th><th>Right (N)</th><th>Bilateral Avg</th><th>Date</th></tr></thead><tbody>`+
+      `<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Left (N)</th><th>Right (N)</th><th>Bilateral Force</th><th>Date</th></tr></thead><tbody>`+
       players.map((p,i)=>`<tr>
         <td><span class="rn ${i<3?'top':''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</span></td>
         <td style="font-weight:600">${p.name}</td><td>${ageBadge(p.age)}</td><td>${posBadge(p.pos)}</td>
