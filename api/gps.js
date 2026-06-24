@@ -36,7 +36,7 @@ module.exports = async (req, res) => {
       });
     });
     Object.keys(byPlayer).forEach(p => {
-      byPlayer[p].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      byPlayer[p].sort((a, b) => parseD(a.date) - parseD(b.date));
     });
     const latest = {};
     Object.keys(byPlayer).forEach(p => {
@@ -71,14 +71,14 @@ module.exports = async (req, res) => {
       });
     });
     const matchList = Object.entries(matchByDate).sort(([a], [b]) => a.localeCompare(b));
-    const weeklyMap = {};
+    const METRIC_KEYS = ['dist', 'dpm', 'hsr', 'sprint', 'expl', 'maxspd', 'acc', 'dec'];
+    const dailyMap = {};
     rows.forEach(r => {
       const d = r['Date'];
       if (!d) return;
       const date = new Date(d);
       if (isNaN(date)) return;
-      const wk = `${date.getFullYear()}-W${String(getWeekNumber(date)).padStart(2, '0')}`;
-      if (!weeklyMap[wk]) weeklyMap[wk] = { dist: [], dpm: [], hsr: [], sprint: [], expl: [], maxspd: [], acc: [], dec: [] };
+      if (!dailyMap[d]) dailyMap[d] = { dist: [], dpm: [], hsr: [], sprint: [], expl: [], maxspd: [], acc: [], dec: [] };
       const mapped = {
         dist:   toNum(r['Distance (m)']),
         dpm:    toNum(r['Distance / min (m)']),
@@ -89,16 +89,33 @@ module.exports = async (req, res) => {
         acc:    toNum(r['Accelerations (high)']),
         dec:    toNum(r['Decelerations (high)']),
       };
-      Object.keys(mapped).forEach(k => {
-        if (mapped[k] != null) weeklyMap[wk][k].push(mapped[k]);
+      METRIC_KEYS.forEach(k => {
+        if (mapped[k] != null) dailyMap[d][k].push(mapped[k]);
+      });
+    });
+    // Weekly value = sum of each day's team average within that ISO week.
+    const weeklySum = {};
+    Object.keys(dailyMap).forEach(dayKey => {
+      const date = new Date(dayKey);
+      if (isNaN(date)) return;
+      const wk = `${date.getFullYear()}-W${String(getWeekNumber(date)).padStart(2, '0')}`;
+      if (!weeklySum[wk]) {
+        weeklySum[wk] = {};
+        METRIC_KEYS.forEach(k => { weeklySum[wk][k] = { sum: 0, n: 0 }; });
+      }
+      METRIC_KEYS.forEach(k => {
+        const vals = dailyMap[dayKey][k];
+        if (!vals.length) return;
+        weeklySum[wk][k].sum += vals.reduce((a, b) => a + b, 0) / vals.length;
+        weeklySum[wk][k].n += 1;
       });
     });
     const teamWeekly = {};
-    Object.keys(weeklyMap).sort().forEach(wk => {
+    Object.keys(weeklySum).sort().forEach(wk => {
       teamWeekly[wk] = {};
-      Object.keys(weeklyMap[wk]).forEach(k => {
-        const vals = weeklyMap[wk][k];
-        teamWeekly[wk][k] = vals.length ? +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : null;
+      METRIC_KEYS.forEach(k => {
+        const { sum, n } = weeklySum[wk][k];
+        teamWeekly[wk][k] = n ? +sum.toFixed(1) : null;
       });
     });
     res.status(200).json({
@@ -117,6 +134,14 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+function parseD(s) {
+  if (s === null || s === undefined || s === '') return 0;
+  if (typeof s === 'number') return new Date((s - 25569) * 86400000);
+  if (s.includes('-')) return new Date(s);
+  const [m, d, y] = s.split('/');
+  if (!y) return 0;
+  return new Date(+y < 100 ? 2000 + +y : +y, +m - 1, +d);
+}
 function toNum(v) {
   if (v === null || v === undefined || v === '') return null;
   const n = parseFloat(v);
