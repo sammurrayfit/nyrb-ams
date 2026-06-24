@@ -138,6 +138,7 @@ tr:last-child td{border-bottom:none}
   <div class="nav-tab" data-p="teamweek">Team / Week</div>
   <div class="nav-tab" data-p="playerday">Player / Day</div>
   <div class="nav-tab" data-p="playerweek">Player / Week</div>
+  <div class="nav-tab" data-p="acwr">Acute:Chronic</div>
   <div class="nav-tab" data-p="mdpm">MD +/-</div>
   <div class="nav-tab" data-p="vald">Testing (Individual)</div>
   <div class="nav-tab" data-p="testing">Testing (Squad View)</div>
@@ -254,6 +255,44 @@ tr:last-child td{border-bottom:none}
     <div class="pg g2 sg"><div class="panel"><div class="pt">Sprint Distance</div><div class="cb"><canvas id="c-pw-sprint"></canvas></div></div><div class="panel"><div class="pt">Explosive Distance</div><div class="cb"><canvas id="c-pw-expl"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Max Speed</div><div class="cb"><canvas id="c-pw-maxspd"></canvas></div></div><div class="panel"><div class="pt">Accelerations</div><div class="cb"><canvas id="c-pw-acc"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Decelerations</div><div class="cb"><canvas id="c-pw-dec"></canvas></div></div></div>
+  </div>
+</div>
+
+<!-- ACUTE:CHRONIC -->
+<div class="page" id="page-acwr">
+  <div class="main">
+    <div class="ctrl-row">
+      <span class="cl">Team:</span><select class="ctrl" id="ac-team" onchange="renderACWR()"><option value="all">All Teams</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
+      <span class="cl">Window:</span><span style="font-family:var(--fontb);font-size:12px;color:#888">Last 28 Days</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <div style="flex:1;min-width:0">
+        <div class="panel sg"><div class="pt">Total Distance — Acute:Chronic</div><div style="position:relative;height:300px"><canvas id="c-ac-dist"></canvas></div></div>
+        <div class="panel sg"><div class="pt">HSR Distance — Acute:Chronic</div><div style="position:relative;height:300px"><canvas id="c-ac-hsr"></canvas></div></div>
+        <div class="panel sg"><div class="pt">VHSR Distance — Acute:Chronic</div><div style="position:relative;height:300px"><canvas id="c-ac-vhsr"></canvas></div></div>
+        <div class="panel sg"><div class="pt">Sprint Distance (SD) — Acute:Chronic</div><div style="position:relative;height:300px"><canvas id="c-ac-sprint"></canvas></div></div>
+        <div class="panel sg"><div class="pt">HMLD — Acute:Chronic</div><div style="position:relative;height:300px"><canvas id="c-ac-hml"></canvas></div></div>
+        <div class="panel sg"><div class="pt">Accelerations — Acute:Chronic</div><div style="position:relative;height:300px"><canvas id="c-ac-acc"></canvas></div></div>
+        <div class="panel sg"><div class="pt">Decelerations — Acute:Chronic</div><div style="position:relative;height:300px"><canvas id="c-ac-dec"></canvas></div></div>
+      </div>
+      <div class="panel" style="width:190px;flex-shrink:0;position:sticky;top:8px">
+        <div class="pt ptl">Reference</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="width:14px;height:14px;background:#dbeaf7;border:1px solid #b8d3e8;border-radius:2px;flex-shrink:0;margin-top:1px"></div>
+            <span style="font-family:var(--fontb);font-size:12px;color:#444;line-height:1.3"><b>&lt; 0.80</b><br>Under-training</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="width:14px;height:14px;background:#dcf0e1;border:1px solid #b6dcc0;border-radius:2px;flex-shrink:0;margin-top:1px"></div>
+            <span style="font-family:var(--fontb);font-size:12px;color:#444;line-height:1.3"><b>0.80 – 1.30</b><br>Optimal Workload</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="width:14px;height:14px;background:#f8dcda;border:1px solid #e8b6b1;border-radius:2px;flex-shrink:0;margin-top:1px"></div>
+            <span style="font-family:var(--fontb);font-size:12px;color:#444;line-height:1.3"><b>&gt; 1.50</b><br>Danger zone</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -846,7 +885,7 @@ async function loadAllData(){
 
 // ── NAV ───────────────────────────────────────────────────────────
 const DONE={};
-const INITS={daily:initDaily,matchday:initMatchday,teamperday:initTeamPerDay,teamweek:initTeamweek,playerday:initPlayerday,playerweek:initPlayerweek,playercompare:initPlayerCompare,mdpm:initMdpm,vald:initVald,testing:initTesting,movement:initMovement,rank:initRankings,trialist:initTrialist,phv:initPHV};
+const INITS={daily:initDaily,matchday:initMatchday,teamperday:initTeamPerDay,teamweek:initTeamweek,playerday:initPlayerday,playerweek:initPlayerweek,acwr:initACWR,playercompare:initPlayerCompare,mdpm:initMdpm,vald:initVald,testing:initTesting,movement:initMovement,rank:initRankings,trialist:initTrialist,phv:initPHV};
 document.querySelectorAll('.nav-tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById('page-'+t.dataset.p).classList.add('active');const p=t.dataset.p;if(p==='playercompare'){initPlayerCompare();}else if(!DONE[p]){DONE[p]=true;INITS[p]&&INITS[p]();}});});
 document.querySelectorAll('.mst').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.mst').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.msp').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById('ms-'+t.dataset.ms).classList.add('active');});});
 function populateDropdown(id){
@@ -1109,6 +1148,90 @@ function renderPlayerWeek(){
   if(nVal!=='all')wkeys=wkeys.slice(-+nVal);
   const labels=wkeys.map(k=>k.slice(5));
   METRICS.forEach(k=>{mkBar('c-pw-'+k,labels,wkeys.map(wk=>weekly[wk]?.[k]?+(weekly[wk][k].reduce((a,b)=>a+b,0)).toFixed(1):null),MC[k]?.c||'#cc0000',MC[k]?.bg);});
+}
+
+// ── ACUTE:CHRONIC (EWMA, 7-day acute : 28-day chronic, last 28 days, per player) ──
+function dayKey(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function acwrZoneColor(v){return v==null?'#aaa':v<0.8?'#4a8fd1':v<=1.3?'#2e9e52':v<=1.5?'#d9a300':'#cc2b2b';}
+function buildACWRSnapshot(metricKey,teamFilter){
+  const playerDays={};
+  let latest=null;
+  PLAYERS.forEach(p=>{
+    if(teamFilter!=='all'&&pAge(p)!==teamFilter)return;
+    const dayMap={};
+    (GPS[p]||[]).forEach(s=>{
+      if(!s.date||s.dist==null||s[metricKey]==null)return;
+      const dt=parseDate(s.date);
+      const key=dayKey(dt);
+      if(!dayMap[key])dayMap[key]=[];
+      dayMap[key].push(s[metricKey]);
+      if(!latest||dt>latest)latest=dt;
+    });
+    if(Object.keys(dayMap).length)playerDays[p]=dayMap;
+  });
+  if(!latest)return[];
+  const windowStart=new Date(latest);windowStart.setDate(windowStart.getDate()-27);
+  const days=[];
+  for(let d=new Date(windowStart);d<=latest;d.setDate(d.getDate()+1))days.push(new Date(d));
+  const dA=2/(7+1),dC=2/(28+1);
+  const results=[];
+  Object.keys(playerDays).forEach(p=>{
+    const dayMap=playerDays[p];
+    let ewmaA=null,ewmaC=null;
+    days.forEach((d,i)=>{
+      const vals=dayMap[dayKey(d)];
+      const load=vals?avg(vals):0;
+      if(i===0){ewmaA=load;ewmaC=load;}
+      else{ewmaA=dA*load+(1-dA)*ewmaA;ewmaC=dC*load+(1-dC)*ewmaC;}
+    });
+    results.push({player:p,chronic:+ewmaC.toFixed(1),acute:+ewmaA.toFixed(1),acwr:ewmaC>0?+(ewmaA/ewmaC).toFixed(2):null});
+  });
+  return results;
+}
+function initACWR(){renderACWR();}
+function renderACWR(){
+  const team=document.getElementById('ac-team')?.value||'all';
+  [['dist','c-ac-dist'],['hsr','c-ac-hsr'],['vhsr','c-ac-vhsr'],['sprint','c-ac-sprint'],['hml','c-ac-hml'],['acc','c-ac-acc'],['dec','c-ac-dec']].forEach(([k,id])=>{
+    const data=buildACWRSnapshot(k,team).filter(d=>d.chronic>0||d.acute>0).sort((a,b)=>(b.acwr??-1)-(a.acwr??-1));
+    mkACWRSnapshot(id,data);
+  });
+}
+function mkACWRSnapshot(id,data){
+  const c=document.getElementById(id);if(!c)return;if(CH[id])CH[id].destroy();
+  const labels=data.map(d=>d.player);
+  const zonePlugin={id:'acwrZones2-'+id,beforeDraw(chart){
+    const{ctx,chartArea,scales:{y2}}=chart;if(!chartArea||!y2)return;
+    const{left,right}=chartArea;
+    const zones=[[0,0.8,'#dbeaf7'],[0.8,1.3,'#dcf0e1'],[1.5,y2.max,'#f8dcda']];
+    ctx.save();
+    zones.forEach(([from,to,color])=>{
+      if(to<=from)return;
+      const yTop=y2.getPixelForValue(Math.min(to,y2.max));
+      const yBot=y2.getPixelForValue(Math.max(from,y2.min));
+      ctx.fillStyle=color;
+      ctx.fillRect(left,yTop,right-left,yBot-yTop);
+    });
+    ctx.restore();
+  }};
+  CH[id]=new Chart(c,{
+    data:{labels,datasets:[
+      {type:'bar',label:'Chronic',data:data.map(d=>d.chronic),backgroundColor:'#44444466',borderColor:'#444',borderWidth:1,stack:'load',yAxisID:'y',order:2},
+      {type:'bar',label:'Acute',data:data.map(d=>d.acute),backgroundColor:'#cc000066',borderColor:'#cc0000',borderWidth:1,stack:'load',yAxisID:'y',order:2},
+      {type:'line',label:'ACWR',data:data.map(d=>d.acwr),yAxisID:'y2',borderColor:'#1a1a1a',borderWidth:2,pointRadius:4,pointHoverRadius:6,pointBackgroundColor:data.map(d=>acwrZoneColor(d.acwr)),pointBorderColor:'#1a1a1a',tension:0.2,fill:false,spanGaps:true,order:1}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      layout:{padding:{top:8}},
+      plugins:{legend:{display:true,position:'top',align:'end',labels:{font:{size:9},boxWidth:10}},
+        tooltip:{callbacks:{label:ctx=>ctx.dataset.label==='ACWR'?`ACWR: ${ctx.parsed.y==null?'—':ctx.parsed.y}`:`${ctx.dataset.label}: ${ctx.parsed.y}`}}},
+      scales:{
+        x:{stacked:true,ticks:{font:{size:9},maxRotation:60,minRotation:60},grid:{display:false}},
+        y:{stacked:true,beginAtZero:true,ticks:{font:{size:9}},grid:{color:'#f0f0f0'},title:{display:true,text:'Load',font:{size:9}}},
+        y2:{position:'right',beginAtZero:true,suggestedMax:1.8,ticks:{font:{size:9}},grid:{drawOnChartArea:false},title:{display:true,text:'ACWR',font:{size:9}}}
+      }
+    },
+    plugins:[zonePlugin]
+  });
 }
 
 // ── PLAYER COMPARE ────────────────────────────────────────────────

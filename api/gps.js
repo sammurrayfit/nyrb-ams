@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
     const ageMap = {};
     rows.forEach(row => {
       const player = row['Name'];
-      if (!player) return;
+      if (!player || isAggregateRow(player)) return;
       const pos = row['Position'] || '';
       const age = row['Age Group'] || '';
       if (pos) posMap[player] = normalizePos(pos);
@@ -44,7 +44,7 @@ module.exports = async (req, res) => {
       if (sessions.length) latest[p] = { ...sessions[sessions.length - 1], player: p, pos: posMap[p] || 'MF' };
     });
     const allDates = [...new Set(rows.map(r => r['Date']).filter(Boolean))].sort();
-    const matchSessions = rows.filter(r => r['MD (-)'] === 'MD' && r['Distance (m)']);
+    const matchSessions = rows.filter(r => r['MD (-)'] === 'MD' && r['Distance (m)'] && !isAggregateRow(r['Name']));
     const matchByDate = {};
     matchSessions.forEach(r => {
       const d = r['Date'];
@@ -75,7 +75,7 @@ module.exports = async (req, res) => {
     const dailyMap = {};
     rows.forEach(r => {
       const d = r['Date'];
-      if (!d) return;
+      if (!d || isAggregateRow(r['Name'])) return;
       const date = new Date(d);
       if (isNaN(date)) return;
       if (!dailyMap[d]) dailyMap[d] = { dist: [], dpm: [], hsr: [], sprint: [], expl: [], maxspd: [], acc: [], dec: [] };
@@ -134,6 +134,11 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+function isAggregateRow(name) {
+  const n = String(name || '').trim().toLowerCase();
+  if (!n) return true;
+  return n.startsWith('ø') || n.includes('all player') || n.includes('squad') || n.includes('average') || n.includes(' avg') || n === 'avg';
+}
 function parseD(s) {
   if (s === null || s === undefined || s === '') return 0;
   if (typeof s === 'number') return new Date((s - 25569) * 86400000);
