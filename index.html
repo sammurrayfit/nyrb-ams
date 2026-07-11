@@ -1094,7 +1094,7 @@ function renderTeamWeek(){
     return dateToSeason(wkStart.toISOString().slice(0,10))===seasonF;
   });
   if(nVal!=='all')wkeys=wkeys.slice(-+nVal);
-  const labels=wkeys.map(k=>`'${k.slice(2,4)} ${k.slice(5)}`);
+  const labels=wkeys.map(k=>k.slice(5));
   METRICS.forEach(k=>{
     let vals;
     if(ageF==='all'){
@@ -1156,7 +1156,7 @@ function renderPlayerWeek(){
   });
   let wkeys=Object.keys(weekly).sort();
   if(nVal!=='all')wkeys=wkeys.slice(-+nVal);
-  const labels=wkeys.map(k=>`'${k.slice(2,4)} ${k.slice(5)}`);
+  const labels=wkeys.map(k=>k.slice(5));
   METRICS.forEach(k=>{mkBar('c-pw-'+k,labels,wkeys.map(wk=>weekly[wk]?.[k]?+(weekly[wk][k].reduce((a,b)=>a+b,0)).toFixed(1):null),MC[k]?.c||'#cc0000',MC[k]?.bg);});
 }
 
