@@ -3,7 +3,7 @@ const { fetchSheet } = require('./_sheet');
 module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   try {
-    const rows = await fetchSheet('GPS_Daily');
+    const rows = dedupeRows(await fetchSheet('GPS_Daily'));
     const byPlayer = {};
     const posMap = {};
     const ageMap = {};
@@ -131,6 +131,34 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+// Manual GPS exports get re-pasted with overlapping date ranges, so the
+// same session (same player/date/distance/HMLD/session length) sometimes
+// ends up in the sheet twice -- once under its specific MD (-) tag and
+// once under "General", or as a plain repeated row. Keep one row per
+// session, preferring the specific tag over "General" when both exist.
+function dedupeRows(rows) {
+  const seen = new Map();
+  const order = [];
+  rows.forEach(r => {
+    const name = String(r['Name'] || '').trim();
+    if (!name || isAggregateRow(name)) { order.push(r); return; }
+    const key = [name, r['Date'], r['Distance (m)'], r['HMLD (m)'], r['Session Length (Mins)']].join('|');
+    const existing = seen.get(key);
+    if (!existing) {
+      seen.set(key, r);
+      order.push(r);
+      return;
+    }
+    const existingIsGeneral = String(existing['MD (-)'] || '').trim().toLowerCase() === 'general';
+    const currentIsGeneral = String(r['MD (-)'] || '').trim().toLowerCase() === 'general';
+    if (existingIsGeneral && !currentIsGeneral) {
+      order[order.indexOf(existing)] = r;
+      seen.set(key, r);
+    }
+    // otherwise keep whichever was already kept (drop this duplicate)
+  });
+  return order;
+}
 function isAggregateRow(name) {
   const n = String(name || '').trim().toLowerCase();
   if (!n) return true;
