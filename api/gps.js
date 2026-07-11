@@ -17,6 +17,7 @@ module.exports = async (req, res) => {
       if (!byPlayer[player]) byPlayer[player] = [];
       byPlayer[player].push({
         date:    row['Date']                              || null,
+        week:    toNum(row['Week']),
         session: row['Session Type']                      || null,
         md:      row['MD (-)']                            || null,
         participation: row['Participation']               || null,
@@ -94,6 +95,12 @@ module.exports = async (req, res) => {
       });
     });
     // Weekly value = sum of each day's team average within that ISO week.
+    // This "All Ages" aggregate pools every age group, whose own "Week"
+    // columns in the sheet run on different, non-aligned schedules (each
+    // team's preseason starts on a different date) — so a shared ISO
+    // calendar week is the only grouping that's meaningful across teams.
+    // Per-team views use the sheet's own Week column instead (see gps
+    // field `week` below, consumed client-side).
     const weeklySum = {};
     Object.keys(dailyMap).forEach(dayKey => {
       const date = new Date(dayKey);

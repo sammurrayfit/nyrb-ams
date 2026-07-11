@@ -1080,19 +1080,37 @@ function renderTeamPerDay(){
 }
 
 // ── TEAM/WEEK ─────────────────────────────────────────────────────
-// BUG FIX: age-filtered path was using wrong week boundary math (anchored
-// to Jan 1 instead of ISO week 1). Now uses isoWeekStart() for correct
-// Monday-of-week boundaries.
 function initTeamweek(){renderTeamWeek();}
 function renderTeamWeek(){
   const ageF=document.getElementById('tw-age')?.value||'all';
   const nVal=document.getElementById('tw-range')?.value||'12';
   const seasonF=document.getElementById('tw-season')?.value||'all';
-  let wkeys=WEEK_KEYS;
-  if(seasonF!=='all')wkeys=wkeys.filter(wk=>{
-    const wkStart=isoWeekStart(+wk.slice(0,4),+wk.slice(6));
-    return dateToSeason(wkStart.toISOString().slice(0,10))===seasonF;
-  });
+  let wkeys;
+  if(ageF==='all'){
+    // "All Ages" pools every team, and each team's own sheet "Week" column
+    // runs on its own schedule (different preseason start dates), so those
+    // numbers aren't comparable across teams. Use the server's ISO-week
+    // keys instead — the only grouping that's meaningful pooled.
+    wkeys=WEEK_KEYS;
+    if(seasonF!=='all')wkeys=wkeys.filter(wk=>{
+      const wkStart=isoWeekStart(+wk.slice(0,4),+wk.slice(6));
+      return dateToSeason(wkStart.toISOString().slice(0,10))===seasonF;
+    });
+  } else {
+    // Single age group: use that team's own sheet "Week" column (a plain
+    // sequential counter reset each preseason), so labels stay in order
+    // without the mid-season wrap a computed ISO week has.
+    const seen=new Set();
+    PLAYERS.forEach(p=>{
+      if(pAge(p)!==ageF)return;
+      (GPS[p]||[]).forEach(s=>{
+        if(s.week==null||!s.date)return;
+        if(seasonF!=='all'&&dateToSeason(s.date)!==seasonF)return;
+        seen.add(`${+dateToSeason(s.date).slice(0,4)}-W${String(s.week).padStart(2,'0')}`);
+      });
+    });
+    wkeys=[...seen].sort();
+  }
   if(nVal!=='all')wkeys=wkeys.slice(-+nVal);
   const labels=wkeys.map(k=>k.slice(5));
   METRICS.forEach(k=>{
@@ -1105,18 +1123,14 @@ function renderTeamWeek(){
       vals=wkeys.map(wk=>{
         const wkYear=+wk.slice(0,4);
         const wkNum=+wk.slice(6);
-        const wkStart=isoWeekStart(wkYear,wkNum);
-        const wkEnd=new Date(wkStart.getTime()+7*86400000);
         const dayData={};
         PLAYERS.forEach(p=>{
           if(pAge(p)!==ageF)return;
           (GPS[p]||[]).forEach(s=>{
-            if(s[k]==null)return;
-            const sd=new Date(s.date);
-            if(sd>=wkStart&&sd<wkEnd){
-              if(!dayData[s.date])dayData[s.date]=[];
-              dayData[s.date].push(s[k]);
-            }
+            if(s[k]==null||s.week!==wkNum)return;
+            if(+dateToSeason(s.date).slice(0,4)!==wkYear)return;
+            if(!dayData[s.date])dayData[s.date]=[];
+            dayData[s.date].push(s[k]);
           });
         });
         const dayAvgs=Object.values(dayData).map(arr=>avg(arr));
@@ -1141,7 +1155,6 @@ function renderPlayerDay(){
 }
 
 // ── PLAYER/WEEK (playerweek) ──────────────────────────────────────
-// BUG FIX: same broken week formula as renderTeamDay. Fixed with isoWeek().
 function initPlayerweek(){populateDropdown('pw-player');document.getElementById('pw-player').onchange=renderPlayerWeek;renderPlayerWeek();}
 function renderPlayerWeek(){
   const player=document.getElementById('pw-player').value;
@@ -1150,7 +1163,8 @@ function renderPlayerWeek(){
   const sessions=(GPS[player]||[]).filter(s=>s.dist&&inSeason(s.date,seasonF));
   const weekly={};
   sessions.forEach(s=>{
-    const wk=isoWeek(new Date(s.date));
+    if(s.week==null)return;
+    const wk=`${dateToSeason(s.date).slice(0,4)}-W${String(s.week).padStart(2,'0')}`;
     if(!weekly[wk])weekly[wk]={};
     METRICS.forEach(k=>{if(s[k]!=null){if(!weekly[wk][k])weekly[wk][k]=[];weekly[wk][k].push(s[k]);}});
   });
