@@ -208,6 +208,7 @@ tr:last-child td{border-bottom:none}
 <div class="page" id="page-teamperday">
   <div class="main">
     <div class="ctrl-row">
+      <span class="cl">Season:</span><select class="ctrl" id="tpd-season" onchange="renderTeamPerDay()"><option value="all">All Seasons</option></select>
       <span class="cl">Age:</span><select class="ctrl" id="tpd-age" onchange="renderTeamPerDay()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
       <span class="cl">Days:</span><select class="ctrl" id="tpd-n" onchange="renderTeamPerDay()"><option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30" selected>Last 30 days</option><option value="all">All</option></select>
     </div>
@@ -223,6 +224,7 @@ tr:last-child td{border-bottom:none}
 <div class="page" id="page-teamweek">
   <div class="main">
     <div class="ctrl-row">
+      <span class="cl">Season:</span><select class="ctrl" id="tw-season" onchange="renderTeamWeek()"><option value="all">All Seasons</option></select>
       <span class="cl">Age:</span><select class="ctrl" id="tw-age" onchange="renderTeamWeek()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
       <span class="cl">Range:</span><select class="ctrl" id="tw-range" onchange="renderTeamWeek()"><option value="4">Last 4 weeks</option><option value="8">Last 8 weeks</option><option value="12" selected>Last 12 weeks</option><option value="all">All weeks</option></select>
     </div>
@@ -237,7 +239,7 @@ tr:last-child td{border-bottom:none}
 <!-- PLAYER/DAY -->
 <div class="page" id="page-playerday">
   <div class="main">
-    <div class="ctrl-row"><span class="cl">Player:</span><select class="ctrl" id="pd-player"></select><span class="cl">Sessions:</span><select class="ctrl" id="pd-n"><option value="7">Last 7 days</option><option value="10">Last 10</option><option value="20">Last 20</option><option value="30">Last 30</option></select></div>
+    <div class="ctrl-row"><span class="cl">Player:</span><select class="ctrl" id="pd-player"></select><span class="cl">Season:</span><select class="ctrl" id="pd-season" onchange="renderPlayerDay()"><option value="all">All Seasons</option></select><span class="cl">Sessions:</span><select class="ctrl" id="pd-n"><option value="7">Last 7 days</option><option value="10">Last 10</option><option value="20">Last 20</option><option value="30">Last 30</option></select></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Total Distance</div><div class="cb"><canvas id="c-pd-dist"></canvas></div></div><div class="panel"><div class="pt">Distance Per Minute</div><div class="cb"><canvas id="c-pd-dpm"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">HSR Distance</div><div class="cb"><canvas id="c-pd-hsr"></canvas></div></div><div class="panel"><div class="pt">VHSR Distance</div><div class="cb"><canvas id="c-pd-vhsr"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Sprint Distance</div><div class="cb"><canvas id="c-pd-sprint"></canvas></div></div><div class="panel"><div class="pt">Explosive Distance</div><div class="cb"><canvas id="c-pd-expl"></canvas></div></div></div>
@@ -249,7 +251,7 @@ tr:last-child td{border-bottom:none}
 <!-- PLAYER/WEEK (playerweek) -->
 <div class="page" id="page-playerweek">
   <div class="main">
-    <div class="ctrl-row"><span class="cl">Player:</span><select class="ctrl" id="pw-player"></select><span class="cl">Range:</span><select class="ctrl" id="pw-range" onchange="renderPlayerWeek()"><option value="4">Last 4 weeks</option><option value="8">Last 8 weeks</option><option value="12" selected>Last 12 weeks</option><option value="all">All</option></select></div>
+    <div class="ctrl-row"><span class="cl">Player:</span><select class="ctrl" id="pw-player"></select><span class="cl">Season:</span><select class="ctrl" id="pw-season" onchange="renderPlayerWeek()"><option value="all">All Seasons</option></select><span class="cl">Range:</span><select class="ctrl" id="pw-range" onchange="renderPlayerWeek()"><option value="4">Last 4 weeks</option><option value="8">Last 8 weeks</option><option value="12" selected>Last 12 weeks</option><option value="all">All</option></select></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Total Distance</div><div class="cb"><canvas id="c-pw-dist"></canvas></div></div><div class="panel"><div class="pt">Distance Per Minute</div><div class="cb"><canvas id="c-pw-dpm"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">HSR Distance</div><div class="cb"><canvas id="c-pw-hsr"></canvas></div></div><div class="panel"><div class="pt">VHSR Distance</div><div class="cb"><canvas id="c-pw-vhsr"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Sprint Distance</div><div class="cb"><canvas id="c-pw-sprint"></canvas></div></div><div class="panel"><div class="pt">Explosive Distance</div><div class="cb"><canvas id="c-pw-expl"></canvas></div></div></div>
@@ -809,7 +811,7 @@ function populateSeasonDropdowns(){
   const seasons=[...found].sort().reverse();
   const currentSeason=dateToSeason(new Date().toISOString().slice(0,10))||'2025-26';
   const defaultSeason=seasons.includes(currentSeason)?currentSeason:seasons[0];
-  ['mdpm-season','test-season','rank-season','pcs-season'].forEach(id=>{
+  ['mdpm-season','test-season','rank-season','pcs-season','tpd-season','tw-season','pd-season','pw-season'].forEach(id=>{
     const sel=document.getElementById(id);if(!sel)return;
     sel.innerHTML='<option value="all">All Seasons</option>';
     seasons.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
@@ -1054,11 +1056,12 @@ function initTeamPerDay(){renderTeamPerDay();}
 function renderTeamPerDay(){
   const ageF=document.getElementById('tpd-age')?.value||'all';
   const nVal=document.getElementById('tpd-n')?.value||'30';
+  const seasonF=document.getElementById('tpd-season')?.value||'all';
   // Collect all dates that have data
   const dateSet=new Set();
   PLAYERS.forEach(p=>{
     if(ageF!=='all'&&pAge(p)!==ageF)return;
-    (GPS[p]||[]).forEach(s=>{if(s.dist&&s.date)dateSet.add(s.date);});
+    (GPS[p]||[]).forEach(s=>{if(s.dist&&s.date&&inSeason(s.date,seasonF))dateSet.add(s.date);});
   });
   let dates=[...dateSet].sort((a,b)=>parseDate(a)-parseDate(b));
   if(nVal!=='all')dates=dates.slice(-+nVal);
@@ -1084,7 +1087,12 @@ function initTeamweek(){renderTeamWeek();}
 function renderTeamWeek(){
   const ageF=document.getElementById('tw-age')?.value||'all';
   const nVal=document.getElementById('tw-range')?.value||'12';
+  const seasonF=document.getElementById('tw-season')?.value||'all';
   let wkeys=WEEK_KEYS;
+  if(seasonF!=='all')wkeys=wkeys.filter(wk=>{
+    const wkStart=isoWeekStart(+wk.slice(0,4),+wk.slice(6));
+    return dateToSeason(wkStart.toISOString().slice(0,10))===seasonF;
+  });
   if(nVal!=='all')wkeys=wkeys.slice(-+nVal);
   const labels=wkeys.map(k=>`'${k.slice(2,4)} ${k.slice(5)}`);
   METRICS.forEach(k=>{
@@ -1124,7 +1132,8 @@ function initPlayerday(){populateDropdown('pd-player');document.getElementById('
 function renderPlayerDay(){
   const player=document.getElementById('pd-player').value;
   const nVal=document.getElementById('pd-n').value;
-  let sessions=(GPS[player]||[]).filter(s=>s.dist);
+  const seasonF=document.getElementById('pd-season')?.value||'all';
+  let sessions=(GPS[player]||[]).filter(s=>s.dist&&inSeason(s.date,seasonF));
   if(nVal==='7'){const cutoff=new Date();cutoff.setDate(cutoff.getDate()-7);sessions=sessions.filter(s=>new Date(s.date)>=cutoff);}
   else sessions=sessions.slice(-+nVal);
   const labels=sessions.map(s=>{const p=parseDate(s.date);return`${p.getMonth()+1}/${p.getDate()}`;});
@@ -1137,7 +1146,8 @@ function initPlayerweek(){populateDropdown('pw-player');document.getElementById(
 function renderPlayerWeek(){
   const player=document.getElementById('pw-player').value;
   const nVal=document.getElementById('pw-range').value;
-  const sessions=(GPS[player]||[]).filter(s=>s.dist);
+  const seasonF=document.getElementById('pw-season')?.value||'all';
+  const sessions=(GPS[player]||[]).filter(s=>s.dist&&inSeason(s.date,seasonF));
   const weekly={};
   sessions.forEach(s=>{
     const wk=isoWeek(new Date(s.date));
