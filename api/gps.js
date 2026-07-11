@@ -73,13 +73,24 @@ module.exports = async (req, res) => {
     });
     const matchList = Object.entries(matchByDate).sort(([a], [b]) => a.localeCompare(b));
     const METRIC_KEYS = ['dist', 'dpm', 'hsr', 'sprint', 'expl', 'maxspd', 'acc', 'dec'];
-    const dailyMap = {};
+    // Weekly value = grand total of every session's value within that ISO
+    // week (every player, every session, summed). This "All Ages" aggregate
+    // pools every age group, whose own "Week" columns in the sheet run on
+    // different, non-aligned schedules (each team's preseason starts on a
+    // different date) — so a shared ISO calendar week is the only grouping
+    // that's meaningful across teams. Per-team views use the sheet's own
+    // Week column instead (see gps field `week` below, consumed client-side).
+    const weeklySum = {};
     rows.forEach(r => {
       const d = r['Date'];
       if (!d || isAggregateRow(r['Name'])) return;
       const date = new Date(d);
       if (isNaN(date)) return;
-      if (!dailyMap[d]) dailyMap[d] = { dist: [], dpm: [], hsr: [], sprint: [], expl: [], maxspd: [], acc: [], dec: [] };
+      const wk = `${date.getFullYear()}-W${String(getWeekNumber(date)).padStart(2, '0')}`;
+      if (!weeklySum[wk]) {
+        weeklySum[wk] = {};
+        METRIC_KEYS.forEach(k => { weeklySum[wk][k] = { sum: 0, n: 0 }; });
+      }
       const mapped = {
         dist:   toNum(r['Distance (m)']),
         dpm:    toNum(r['Distance / min (m)']),
@@ -91,29 +102,8 @@ module.exports = async (req, res) => {
         dec:    toNum(r['Decelerations (high)']),
       };
       METRIC_KEYS.forEach(k => {
-        if (mapped[k] != null) dailyMap[d][k].push(mapped[k]);
-      });
-    });
-    // Weekly value = sum of each day's team average within that ISO week.
-    // This "All Ages" aggregate pools every age group, whose own "Week"
-    // columns in the sheet run on different, non-aligned schedules (each
-    // team's preseason starts on a different date) — so a shared ISO
-    // calendar week is the only grouping that's meaningful across teams.
-    // Per-team views use the sheet's own Week column instead (see gps
-    // field `week` below, consumed client-side).
-    const weeklySum = {};
-    Object.keys(dailyMap).forEach(dayKey => {
-      const date = new Date(dayKey);
-      if (isNaN(date)) return;
-      const wk = `${date.getFullYear()}-W${String(getWeekNumber(date)).padStart(2, '0')}`;
-      if (!weeklySum[wk]) {
-        weeklySum[wk] = {};
-        METRIC_KEYS.forEach(k => { weeklySum[wk][k] = { sum: 0, n: 0 }; });
-      }
-      METRIC_KEYS.forEach(k => {
-        const vals = dailyMap[dayKey][k];
-        if (!vals.length) return;
-        weeklySum[wk][k].sum += vals.reduce((a, b) => a + b, 0) / vals.length;
+        if (mapped[k] == null) return;
+        weeklySum[wk][k].sum += mapped[k];
         weeklySum[wk][k].n += 1;
       });
     });

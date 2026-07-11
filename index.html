@@ -1120,21 +1120,20 @@ function renderTeamWeek(){
       // date math needed, so this path was always correct.
       vals=wkeys.map(wk=>TEAM_WEEKLY[wk]?.[k]??null);
     } else {
+      // Grand total: sum of every player's every session value in the week.
       vals=wkeys.map(wk=>{
         const wkYear=+wk.slice(0,4);
         const wkNum=+wk.slice(6);
-        const dayData={};
+        let sum=0,n=0;
         PLAYERS.forEach(p=>{
           if(pAge(p)!==ageF)return;
           (GPS[p]||[]).forEach(s=>{
             if(s[k]==null||s.week!==wkNum)return;
             if(+dateToSeason(s.date).slice(0,4)!==wkYear)return;
-            if(!dayData[s.date])dayData[s.date]=[];
-            dayData[s.date].push(s[k]);
+            sum+=s[k];n++;
           });
         });
-        const dayAvgs=Object.values(dayData).map(arr=>avg(arr));
-        return dayAvgs.length?+(dayAvgs.reduce((a,b)=>a+b,0)).toFixed(1):null;
+        return n?+sum.toFixed(1):null;
       });
     }
     mkBar('c-tw-'+k,labels,vals,MC[k]?.c||'#cc0000',MC[k]?.bg);
