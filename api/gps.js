@@ -73,23 +73,28 @@ module.exports = async (req, res) => {
     });
     const matchList = Object.entries(matchByDate).sort(([a], [b]) => a.localeCompare(b));
     const METRIC_KEYS = ['dist', 'dpm', 'hsr', 'sprint', 'expl', 'maxspd', 'acc', 'dec'];
-    // Weekly value = grand total of every session's value within that ISO
-    // week (every player, every session, summed). This "All Ages" aggregate
-    // pools every age group, whose own "Week" columns in the sheet run on
-    // different, non-aligned schedules (each team's preseason starts on a
-    // different date) — so a shared ISO calendar week is the only grouping
-    // that's meaningful across teams. Per-team views use the sheet's own
-    // Week column instead (see gps field `week` below, consumed client-side).
-    const weeklySum = {};
+    // Weekly value has two flavors:
+    //   sum = grand total of every session's value within the ISO week
+    //         (every player, every session, summed).
+    //   avg = each day's team average within the week, summed across the
+    //         days (i.e. "average the days, then add them up") — an
+    //         estimate of one typical player's week rather than the whole
+    //         squad's combined output.
+    // This "All Ages" aggregate pools every age group, whose own "Week"
+    // columns in the sheet run on different, non-aligned schedules (each
+    // team's preseason starts on a different date) — so a shared ISO
+    // calendar week is the only grouping that's meaningful across teams.
+    // Per-team views use the sheet's own Week column instead (see gps
+    // field `week` below, consumed client-side).
+    const dailyMap = {};
     rows.forEach(r => {
       const d = r['Date'];
       if (!d || isAggregateRow(r['Name'])) return;
       const date = new Date(d);
       if (isNaN(date)) return;
-      const wk = `${date.getFullYear()}-W${String(getWeekNumber(date)).padStart(2, '0')}`;
-      if (!weeklySum[wk]) {
-        weeklySum[wk] = {};
-        METRIC_KEYS.forEach(k => { weeklySum[wk][k] = { sum: 0, n: 0 }; });
+      if (!dailyMap[d]) {
+        dailyMap[d] = { date, vals: {} };
+        METRIC_KEYS.forEach(k => { dailyMap[d].vals[k] = []; });
       }
       const mapped = {
         dist:   toNum(r['Distance (m)']),
@@ -102,17 +107,31 @@ module.exports = async (req, res) => {
         dec:    toNum(r['Decelerations (high)']),
       };
       METRIC_KEYS.forEach(k => {
-        if (mapped[k] == null) return;
-        weeklySum[wk][k].sum += mapped[k];
-        weeklySum[wk][k].n += 1;
+        if (mapped[k] != null) dailyMap[d].vals[k].push(mapped[k]);
+      });
+    });
+    const weeklyAgg = {};
+    Object.values(dailyMap).forEach(({ date, vals }) => {
+      const wk = `${date.getFullYear()}-W${String(getWeekNumber(date)).padStart(2, '0')}`;
+      if (!weeklyAgg[wk]) {
+        weeklyAgg[wk] = {};
+        METRIC_KEYS.forEach(k => { weeklyAgg[wk][k] = { sum: 0, avgSum: 0, n: 0 }; });
+      }
+      METRIC_KEYS.forEach(k => {
+        const dayVals = vals[k];
+        if (!dayVals.length) return;
+        const daySum = dayVals.reduce((a, b) => a + b, 0);
+        weeklyAgg[wk][k].sum += daySum;
+        weeklyAgg[wk][k].avgSum += daySum / dayVals.length;
+        weeklyAgg[wk][k].n += dayVals.length;
       });
     });
     const teamWeekly = {};
-    Object.keys(weeklySum).sort().forEach(wk => {
+    Object.keys(weeklyAgg).sort().forEach(wk => {
       teamWeekly[wk] = {};
       METRIC_KEYS.forEach(k => {
-        const { sum, n } = weeklySum[wk][k];
-        teamWeekly[wk][k] = n ? { sum: +sum.toFixed(1), avg: +(sum / n).toFixed(1) } : null;
+        const { sum, avgSum, n } = weeklyAgg[wk][k];
+        teamWeekly[wk][k] = n ? { sum: +sum.toFixed(1), avg: +avgSum.toFixed(1) } : null;
       });
     });
     res.status(200).json({

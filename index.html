@@ -1125,21 +1125,25 @@ function renderTeamWeek(){
       // date math needed, so this path was always correct.
       vals=wkeys.map(wk=>TEAM_WEEKLY[wk]?.[k]?.[aggF]??null);
     } else {
-      // Sum (or average) of every player's every session value in the week.
+      // Sum = grand total of every player's every session value in the week.
+      // Avg = each day's team average within the week, summed across days.
       vals=wkeys.map(wk=>{
         const wkYear=+wk.slice(0,4);
         const wkNum=+wk.slice(6);
-        let sum=0,n=0;
+        const dayData={};
         PLAYERS.forEach(p=>{
           if(pAge(p)!==ageF)return;
           (GPS[p]||[]).forEach(s=>{
             if(s[k]==null||s.week!==wkNum)return;
             if(+dateToSeason(s.date).slice(0,4)!==wkYear)return;
-            sum+=s[k];n++;
+            if(!dayData[s.date])dayData[s.date]=[];
+            dayData[s.date].push(s[k]);
           });
         });
-        if(!n)return null;
-        return aggF==='sum'?+sum.toFixed(1):+(sum/n).toFixed(1);
+        const days=Object.values(dayData);
+        if(!days.length)return null;
+        if(aggF==='sum')return+days.reduce((a,arr)=>a+arr.reduce((x,y)=>x+y,0),0).toFixed(1);
+        return+days.reduce((a,arr)=>a+avg(arr),0).toFixed(1);
       });
     }
     mkBar('c-tw-'+k,labels,vals,MC[k]?.c||'#cc0000',MC[k]?.bg);
