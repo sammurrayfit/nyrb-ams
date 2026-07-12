@@ -143,7 +143,7 @@ tr:last-child td{border-bottom:none}
   <div class="nav-tab" data-p="vald">Testing (Individual)</div>
   <div class="nav-tab" data-p="testing">Testing (Squad View)</div>
   <div class="nav-tab" data-p="movement">Movement Screen</div>
-  <div class="nav-tab" data-p="phv">PHV</div>
+  <div class="nav-tab" data-p="phv">Growth &amp; Maturation</div>
   <div class="nav-tab" data-p="rank">Rankings</div>
   <div class="nav-tab" data-p="playercompare">Player Compare</div>
   <div class="nav-tab" data-p="trialist">Trialist</div>
@@ -2442,6 +2442,52 @@ function phvStage(v){if(v===null||v===undefined)return null;if(v<-1)return'pre';
 function phvColor(v){const s=phvStage(v);return s==='pre'?'#0055cc':s==='circum'?'#ff9500':'#007a30';}
 function phvLabel(v){const s=phvStage(v);return s==='pre'?'Pre-PHV':s==='circum'?'Circum-PHV':'Post-PHV';}
 
+// Height Change (in): <0.3 (incl. negatives) grey, 0.3–0.69 black, 0.7–1.0 orange, >1.0 red
+function heightChgColor(v){
+  if(v===null||v===undefined)return'#555';
+  if(v<0.3)return'#999999';
+  if(v<0.7)return'#000000';
+  if(v<=1.0)return'#ff9500';
+  return'#cc0000';
+}
+// DOB: Jan–Jun black, Jul–Sep orange, Oct–Dec red
+function dobColor(dob){
+  if(!dob)return null;
+  const d=parseDate(dob);
+  if(!d||isNaN(d))return null;
+  const m=d.getMonth()+1;
+  if(m<=6)return'#000000';
+  if(m<=9)return'#ff9500';
+  return'#cc0000';
+}
+// Growth %: 0–88.0 blue/Pre-PHV, 88.1–96.0 orange/Circum-PHV, 96.1–100 green/Post-PHV
+function growthColor(pct){
+  if(pct===null||pct===undefined)return'#aaa';
+  if(pct<=88.0)return'#0055cc';
+  if(pct<=96.0)return'#ff9500';
+  return'#007a30';
+}
+function growthLabel(pct){
+  if(pct===null||pct===undefined)return'';
+  if(pct<=88.0)return'Pre-PHV';
+  if(pct<=96.0)return'Circum-PHV';
+  return'Post-PHV';
+}
+// Decimal inches -> feet'inches" (e.g. 64.5 -> 5'4.5")
+function toFeetIn(v){
+  if(v===null||v===undefined)return'—';
+  let ft=Math.floor(v/12);
+  let inch=+(v-ft*12).toFixed(1);
+  if(inch>=12){inch-=12;ft+=1;}
+  const inchStr=inch%1===0?inch.toFixed(0):inch.toFixed(1);
+  return`${ft}'${inchStr}"`;
+}
+let PHV_SORT_KEY='phv',PHV_SORT_DIR=1;
+function phvSort(key){
+  if(PHV_SORT_KEY===key)PHV_SORT_DIR*=-1;else{PHV_SORT_KEY=key;PHV_SORT_DIR=1;}
+  renderPHV();
+}
+
 function phvClearFilters(){
   document.getElementById('phv-player').value='all';
   document.getElementById('phv-team').value='all';
@@ -2494,8 +2540,16 @@ function renderPHV(){
     });
   });
 
-  // Sort by PHV ascending (Pre first)
-  rows.sort((a,b)=>(a.phv??999)-(b.phv??999));
+  // Sort by whichever column was last clicked (defaults to PHV ascending)
+  const dateSortCols=new Set(['date','dob']);
+  rows.sort((a,b)=>{
+    let av=a[PHV_SORT_KEY],bv=b[PHV_SORT_KEY];
+    if(dateSortCols.has(PHV_SORT_KEY)){av=av?parseDate(av).getTime():null;bv=bv?parseDate(bv).getTime():null;}
+    if(av===null||av===undefined)return bv===null||bv===undefined?0:1;
+    if(bv===null||bv===undefined)return-1;
+    if(typeof av==='string')return PHV_SORT_DIR*av.localeCompare(bv);
+    return PHV_SORT_DIR*(av-bv);
+  });
 
   // KPIs
   const withPHV=rows.filter(r=>r.phv!==null);
@@ -2556,30 +2610,36 @@ function renderPHV(){
   // Table — exact column order requested
   const tbl=document.getElementById('tbl-phv');
   if(!tbl)return;
-  if(!rows.length){tbl.innerHTML='<tr><td colspan="12" style="padding:20px;text-align:center;color:#aaa">No data matches the current filters</td></tr>';return;}
+  if(!rows.length){tbl.innerHTML='<tr><td colspan="13" style="padding:20px;text-align:center;color:#aaa">No data matches the current filters</td></tr>';return;}
   const fmt=v=>v!==null&&v!==undefined?+v%1===0?v:v.toFixed(2):'—';
   const fmtChg=v=>v===null||v===undefined?'—':(v>0?'+':'')+v.toFixed(2);
+  const arrow=k=>PHV_SORT_KEY===k?(PHV_SORT_DIR===1?' ▲':' ▼'):'';
+  const th=(key,label)=>`<th onclick="phvSort('${key}')" style="cursor:pointer;user-select:none">${label}${arrow(key)}</th>`;
   tbl.innerHTML=`<thead><tr>
-    <th>Date</th><th>Team</th><th>Name</th>
-    <th>Age at Test</th><th>Biological Age</th>
-    <th>Weight (lb)</th><th>Weight Change</th>
-    <th>Standing Height (in)</th><th>Height Change</th>
-    <th>Adult Height (in)</th><th>PHV</th><th>Growth %</th>
+    ${th('date','Date')}${th('team','Team')}${th('name','Name')}${th('dob','DOB')}
+    ${th('ageAtTest','Age at Test')}${th('bioAge','Biological Age')}
+    ${th('weight','Weight (lb)')}${th('weightChg','Weight Change')}
+    ${th('height','Standing Height')}${th('heightChg','Height Change')}
+    ${th('adultHeight','Adult Height')}${th('phv','PHV')}${th('growthPct','Growth %')}
   </tr></thead><tbody>${rows.map(r=>{
-    const sc=r.phv!==null?phvColor(r.phv):'#aaa';
+    const dc=dobColor(r.dob);
+    const hcc=heightChgColor(r.heightChg);
+    const gc=growthColor(r.growthPct);
+    const gl=growthLabel(r.growthPct);
     return`<tr>
       <td>${r.date||'—'}</td>
       <td>${r.team||'—'}</td>
       <td style="font-weight:600">${r.name}</td>
+      <td${dc?` style="color:${dc}"`:''}>${r.dob||'—'}</td>
       <td>${fmt(r.ageAtTest)}</td>
       <td>${fmt(r.bioAge)}</td>
       <td>${fmt(r.weight)}</td>
-      <td style="color:${r.weightChg>0?'#cc0000':r.weightChg<0?'#007a30':'#555'}">${fmtChg(r.weightChg)}</td>
-      <td>${fmt(r.height)}</td>
-      <td style="color:${r.heightChg>0?'#007a30':r.heightChg<0?'#cc0000':'#555'}">${fmtChg(r.heightChg)}</td>
-      <td>${fmt(r.adultHeight)}</td>
-      <td style="font-weight:700;color:${sc}">${fmt(r.phv)}&nbsp;<span style="font-size:9px;font-weight:400;color:${sc}">${r.phv!==null?phvLabel(r.phv):''}</span></td>
-      <td>${r.growthPct!==null?(r.growthPct.toFixed(1)+'%'):'—'}</td>
+      <td>${fmtChg(r.weightChg)}</td>
+      <td>${toFeetIn(r.height)}</td>
+      <td style="color:${hcc}">${fmtChg(r.heightChg)}</td>
+      <td>${toFeetIn(r.adultHeight)}</td>
+      <td>${fmt(r.phv)}</td>
+      <td style="font-weight:700;color:${gc}">${r.growthPct!==null?(r.growthPct.toFixed(1)+'%'):'—'}${gl?`&nbsp;<span style="font-size:9px;font-weight:400;color:${gc}">${gl}</span>`:''}</td>
     </tr>`;
   }).join('')}</tbody>`;
 }
