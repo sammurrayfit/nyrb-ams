@@ -17,9 +17,9 @@ module.exports = async (req, res) => {
         bioAge:      toNum(row['Biological Age']),
         weight:      toNum(row['Weight (lb)']),
         weightChg:   toNum(row['Weight Change']),
-        height:      toNum(row['Standing Height (in)']),
+        height:      toInches(row['Standing Height (in)']),
         heightChg:   toNum(row['Height Change']),
-        adultHeight: toNum(row['Adult Height (in)']),
+        adultHeight: toInches(row['Adult Height (in)']),
         phv:         toNum(row['PHV']),
         growthPct:   toNum(row['Growth %']),
       });
@@ -45,4 +45,14 @@ function toNum(v) {
   if (v === null || v === undefined || v === '') return null;
   const n = parseFloat(v);
   return isNaN(n) ? null : n;
+}
+// Sheet stores height as feet+inches text, e.g. 5' 5.9" — parseFloat alone
+// truncates at the apostrophe and silently drops the inches, rounding every
+// height down to the nearest foot. Parse both parts and return total inches.
+function toInches(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const s = String(v).trim();
+  const m = s.match(/(\d+)\s*'\s*([\d.]+)/);
+  if (m) return +(parseFloat(m[1]) * 12 + parseFloat(m[2])).toFixed(1);
+  return toNum(v);
 }
