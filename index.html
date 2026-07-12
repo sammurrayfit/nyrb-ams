@@ -211,6 +211,7 @@ tr:last-child td{border-bottom:none}
       <span class="cl">Season:</span><select class="ctrl" id="tpd-season" onchange="renderTeamPerDay()"><option value="all">All Seasons</option></select>
       <span class="cl">Age:</span><select class="ctrl" id="tpd-age" onchange="renderTeamPerDay()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
       <span class="cl">Days:</span><select class="ctrl" id="tpd-n" onchange="renderTeamPerDay()"><option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30" selected>Last 30 days</option><option value="all">All</option></select>
+      <span class="cl">View:</span><select class="ctrl" id="tpd-agg" onchange="renderTeamPerDay()"><option value="avg" selected>Average</option><option value="sum">Sum</option></select>
     </div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Total Distance</div><div class="cb"><canvas id="c-tpd-dist"></canvas></div></div><div class="panel"><div class="pt">Distance Per Minute</div><div class="cb"><canvas id="c-tpd-dpm"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">HSR Distance</div><div class="cb"><canvas id="c-tpd-hsr"></canvas></div></div><div class="panel"><div class="pt">VHSR Distance</div><div class="cb"><canvas id="c-tpd-vhsr"></canvas></div></div></div>
@@ -227,6 +228,7 @@ tr:last-child td{border-bottom:none}
       <span class="cl">Season:</span><select class="ctrl" id="tw-season" onchange="renderTeamWeek()"><option value="all">All Seasons</option></select>
       <span class="cl">Age:</span><select class="ctrl" id="tw-age" onchange="renderTeamWeek()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
       <span class="cl">Range:</span><select class="ctrl" id="tw-range" onchange="renderTeamWeek()"><option value="4">Last 4 weeks</option><option value="8">Last 8 weeks</option><option value="12" selected>Last 12 weeks</option><option value="all">All weeks</option></select>
+      <span class="cl">View:</span><select class="ctrl" id="tw-agg" onchange="renderTeamWeek()"><option value="sum" selected>Sum</option><option value="avg">Average</option></select>
     </div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Total Distance</div><div class="cb"><canvas id="c-tw-dist"></canvas></div></div><div class="panel"><div class="pt">Distance Per Minute</div><div class="cb"><canvas id="c-tw-dpm"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">HSR Distance</div><div class="cb"><canvas id="c-tw-hsr"></canvas></div></div><div class="panel"><div class="pt">VHSR Distance</div><div class="cb"><canvas id="c-tw-vhsr"></canvas></div></div></div>
@@ -1057,6 +1059,7 @@ function renderTeamPerDay(){
   const ageF=document.getElementById('tpd-age')?.value||'all';
   const nVal=document.getElementById('tpd-n')?.value||'30';
   const seasonF=document.getElementById('tpd-season')?.value||'all';
+  const aggF=document.getElementById('tpd-agg')?.value||'avg';
   // Collect all dates that have data
   const dateSet=new Set();
   PLAYERS.forEach(p=>{
@@ -1073,7 +1076,8 @@ function renderTeamPerDay(){
         if(ageF!=='all'&&pAge(p)!==ageF)return;
         (GPS[p]||[]).forEach(s=>{if(s.date===date&&s[k]!=null)dayVals.push(s[k]);});
       });
-      return dayVals.length?+(avg(dayVals)).toFixed(1):null;
+      if(!dayVals.length)return null;
+      return aggF==='sum'?+dayVals.reduce((a,b)=>a+b,0).toFixed(1):+avg(dayVals).toFixed(1);
     });
     mkBar('c-tpd-'+k,labels,vals,MC[k]?.c||'#cc0000',MC[k]?.bg);
   });
@@ -1085,6 +1089,7 @@ function renderTeamWeek(){
   const ageF=document.getElementById('tw-age')?.value||'all';
   const nVal=document.getElementById('tw-range')?.value||'12';
   const seasonF=document.getElementById('tw-season')?.value||'all';
+  const aggF=document.getElementById('tw-agg')?.value||'sum';
   let wkeys;
   if(ageF==='all'){
     // "All Ages" pools every team, and each team's own sheet "Week" column
@@ -1118,9 +1123,9 @@ function renderTeamWeek(){
     if(ageF==='all'){
       // "All Ages" path uses server-computed TEAM_WEEKLY — no client-side
       // date math needed, so this path was always correct.
-      vals=wkeys.map(wk=>TEAM_WEEKLY[wk]?.[k]??null);
+      vals=wkeys.map(wk=>TEAM_WEEKLY[wk]?.[k]?.[aggF]??null);
     } else {
-      // Grand total: sum of every player's every session value in the week.
+      // Sum (or average) of every player's every session value in the week.
       vals=wkeys.map(wk=>{
         const wkYear=+wk.slice(0,4);
         const wkNum=+wk.slice(6);
@@ -1133,7 +1138,8 @@ function renderTeamWeek(){
             sum+=s[k];n++;
           });
         });
-        return n?+sum.toFixed(1):null;
+        if(!n)return null;
+        return aggF==='sum'?+sum.toFixed(1):+(sum/n).toFixed(1);
       });
     }
     mkBar('c-tw-'+k,labels,vals,MC[k]?.c||'#cc0000',MC[k]?.bg);

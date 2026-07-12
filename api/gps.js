@@ -112,7 +112,7 @@ module.exports = async (req, res) => {
       teamWeekly[wk] = {};
       METRIC_KEYS.forEach(k => {
         const { sum, n } = weeklySum[wk][k];
-        teamWeekly[wk][k] = n ? +sum.toFixed(1) : null;
+        teamWeekly[wk][k] = n ? { sum: +sum.toFixed(1), avg: +(sum / n).toFixed(1) } : null;
       });
     });
     res.status(200).json({
