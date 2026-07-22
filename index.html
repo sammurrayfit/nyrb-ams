@@ -87,10 +87,6 @@ tr:last-child td{border-bottom:none}
 #page-testing .cl{font-size:13px}
 #page-testing .cb-lg{height:260px}
 #page-testing .cb{height:210px}
-.ms-nav{background:#fff;border-bottom:2px solid #eee;display:flex;overflow-x:auto;height:34px}
-.mst{padding:0 14px;height:34px;display:flex;align-items:center;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;flex-shrink:0}
-.mst:hover{color:var(--red)}.mst.active{color:var(--red);border-bottom-color:var(--red)}
-.msp{display:none}.msp.active{display:block}
 .tr-tab{padding:0 14px;height:34px;display:flex;align-items:center;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;flex-shrink:0}
 .tr-tab:hover{color:var(--red)}.tr-tab.active{color:var(--red);border-bottom-color:var(--red)}
 .tr-pane{display:none}.tr-pane.active{display:block}
@@ -99,17 +95,6 @@ tr:last-child td{border-bottom:none}
 .sis{display:flex;gap:5px;flex-wrap:wrap}
 .si{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:3px;border:1px solid var(--border);flex:1;min-width:150px;font-size:10px;color:var(--text2);line-height:1.3}
 .sn{padding:1px 6px;border-radius:2px;font-family:var(--font);font-weight:800;font-size:14px;color:#fff}
-.ef{background:#fff;border:1px solid var(--border);padding:12px;margin-bottom:8px}
-.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px}
-.fg label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:3px;font-family:var(--font)}
-.fg select,.fg input{width:100%;background:#f8f8f8;border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:3px;font-size:12px;font-family:var(--fontb);outline:none}
-.sr{display:flex;gap:3px;margin-top:3px}
-.sb{width:28px;height:28px;border-radius:3px;border:2px solid var(--border);background:#f8f8f8;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;color:var(--text3)}
-.sb:hover{border-color:var(--red);color:var(--red)}
-.sb.sel{border-color:var(--red);background:var(--red);color:#fff}
-.bsave{background:var(--red);color:#fff;border:none;padding:7px 18px;border-radius:3px;font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;margin-top:10px}
-.nf{width:100%;border:1px solid var(--border);border-radius:3px;padding:6px;font-size:12px;font-family:var(--fontb);resize:vertical;min-height:50px;background:#f8f8f8}
-.nf:focus{outline:none;border-color:var(--red)}
 .rpill{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:3px;font-family:var(--font);font-size:14px;font-weight:800;color:#fff}
 .rn{font-family:var(--font);font-size:16px;font-weight:800;color:#ccc}.rn.top{color:var(--red)}
 .rb-w{display:flex;align-items:center;gap:5px}.rb{height:5px;border-radius:2px;background:var(--red)}
@@ -621,42 +606,19 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 <div class="page" id="page-movement">
-  <div class="ms-nav">
-    <div class="mst active" data-ms="overview">Overview</div>
-    <div class="mst" data-ms="entry">Data Entry</div>
-  </div>
   <div class="main">
-    <div class="msp active" id="ms-overview">
-      <div class="pg g2 sg">
-        <div class="scale-box"><div class="sbt">Movement Scale</div><div class="sis"><div class="si"><span class="sn" style="background:#cc0000">1</span>Needs 1-on-1 help</div><div class="si"><span class="sn" style="background:#e05000">2</span>Struggling, needed cues</div><div class="si"><span class="sn" style="background:#d4a000">3</span>Got it after 3–4 cues</div><div class="si"><span class="sn" style="background:#5a9000">4</span>1–2 cues or shaky</div><div class="si"><span class="sn" style="background:#007a30">5</span>No cues — ready for weights</div></div></div>
-        <div class="panel" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <span class="cl">Age:</span>
-          <select class="ctrl" id="ms-age-filter" onchange="renderMSOv()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
-          <select class="ctrl" id="ms-date-filter" onchange="renderMSOv()"><option value="latest">Latest Session</option><option value="all">All Sessions</option></select>
-        </div>
-      </div>
-      <div class="panel sg"><div class="pt ptl">Squad Movement Scores</div><div class="tw"><table id="tbl-ms-ov"></table></div></div>
-      <div class="pg g2 sg">
-        <div class="panel"><div class="pt">Score Distribution</div><div class="cb"><canvas id="c-ms-lb"></canvas></div></div>
-        <div class="panel"><div class="pt">Avg Score by Movement</div><div class="cb"><canvas id="c-ms-ub"></canvas></div></div>
+    <div class="pg g2 sg">
+      <div class="scale-box"><div class="sbt">Movement Scale</div><div class="sis"><div class="si"><span class="sn" style="background:#cc0000">1</span>Needs 1-on-1 help</div><div class="si"><span class="sn" style="background:#e05000">2</span>Struggling, needed cues</div><div class="si"><span class="sn" style="background:#d4a000">3</span>Got it after 3–4 cues</div><div class="si"><span class="sn" style="background:#5a9000">4</span>1–2 cues or shaky</div><div class="si"><span class="sn" style="background:#007a30">5</span>No cues — ready for weights</div></div></div>
+      <div class="panel" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="cl">Age:</span>
+        <select class="ctrl" id="ms-age-filter" onchange="renderMSOv()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
+        <select class="ctrl" id="ms-date-filter" onchange="renderMSOv()"><option value="latest">Latest Session</option><option value="all">All Sessions</option></select>
       </div>
     </div>
-    <div class="msp" id="ms-entry">
-      <div class="ef"><div class="pt ptl">Log Movement Screen</div>
-        <div class="fgrid">
-          <div class="fg"><label>Player</label><select id="ms-ep"></select></div>
-          <div class="fg"><label>Date</label><input type="date" id="ms-ed"/></div>
-          <div class="fg"><label>Session</label><select id="ms-es"><option>Morning</option><option>Afternoon</option><option>Pre-Match</option></select></div>
-        </div>
-        <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
-          <div><div style="font-family:var(--font);font-size:12px;font-weight:800;text-transform:uppercase;color:var(--red);margin-bottom:8px;border-bottom:2px solid var(--border);padding-bottom:5px">Lower Body</div><div id="ms-lb-moves"></div></div>
-          <div><div style="font-family:var(--font);font-size:12px;font-weight:800;text-transform:uppercase;color:var(--red);margin-bottom:8px;border-bottom:2px solid var(--border);padding-bottom:5px">Upper Body</div><div id="ms-ub-moves"></div></div>
-        </div>
-        <div style="margin-top:10px"><label style="display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:3px;font-family:var(--font)">Notes</label><textarea class="nf" id="ms-notes" placeholder="Cues given, technique notes..."></textarea></div>
-        <button class="bsave" onclick="msSave()">Save Session</button>
-        <span id="ms-msg" style="display:none;margin-left:10px;font-size:12px;color:#007a30;font-weight:600">✓ Saved</span>
-      </div>
-      <div class="panel"><div class="pt ptl">Recent Sessions</div><div class="tw"><table id="tbl-ms-rec"></table></div></div>
+    <div class="panel sg"><div class="pt ptl">Squad Movement Scores</div><div class="tw"><table id="tbl-ms-ov"></table></div></div>
+    <div class="pg g2 sg">
+      <div class="panel"><div class="pt">Score Distribution</div><div class="cb"><canvas id="c-ms-lb"></canvas></div></div>
+      <div class="panel"><div class="pt">Avg Score by Movement</div><div class="cb"><canvas id="c-ms-ub"></canvas></div></div>
     </div>
   </div>
 </div>
@@ -784,7 +746,6 @@ let PLAYERS=[],GPS={},PM={},AM={},LATEST={},MATCH_LIST=[],TEAM_WEEKLY={},WEEK_KE
 let CMJ={},NB={},VALD={},SPRINT={},T505={},BROAD={},MAS_DATA={},MS_DATA={};
 let TRIALIST_CMJ={},TRIALIST_MS={};
 let PHV_DATA={};
-const MS_LOCAL=[];
 
 // ── ISO WEEK HELPERS ──────────────────────────────────────────────
 // Returns "YYYY-Www" ISO week key for a given Date object.
@@ -906,7 +867,6 @@ async function loadAllData(){
 const DONE={};
 const INITS={daily:initDaily,matchday:initMatchday,teamperday:initTeamPerDay,teamweek:initTeamweek,playerday:initPlayerday,playerweek:initPlayerweek,acwr:initACWR,playercompare:initPlayerCompare,mdpm:initMdpm,vald:initVald,testing:initTesting,movement:initMovement,rank:initRankings,trialist:initTrialist,phv:initPHV};
 document.querySelectorAll('.nav-tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById('page-'+t.dataset.p).classList.add('active');const p=t.dataset.p;if(p==='playercompare'){initPlayerCompare();}else if(!DONE[p]){DONE[p]=true;INITS[p]&&INITS[p]();}});});
-document.querySelectorAll('.mst').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.mst').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.msp').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById('ms-'+t.dataset.ms).classList.add('active');});});
 function populateDropdown(id){
   const sel=document.getElementById(id);if(!sel||sel.options.length)return;
   [...PLAYERS].sort((a,b)=>a.localeCompare(b))
@@ -2227,30 +2187,7 @@ function renderRank(){
 
 // ── MOVEMENT SCREEN ───────────────────────────────────────────────
 function initMovement(){
-  const pSel=document.getElementById('ms-ep');
-  if(pSel&&!pSel.options.length){
-    const sorted=[...PLAYERS].sort((a,b)=>{
-      const la=(GPS[a]||[]).filter(s=>s.dist).slice(-1)[0]?.date||'';
-      const lb=(GPS[b]||[]).filter(s=>s.dist).slice(-1)[0]?.date||'';
-      return lb.localeCompare(la);
-    });
-    sorted.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;pSel.appendChild(o);});
-  }
-  document.getElementById('ms-ed').value=new Date().toISOString().slice(0,10);
-  buildMSForm();renderMSOv();renderMSRecent();
-}
-function buildMSForm(){
-  function build(moves,cid,prefix){document.getElementById(cid).innerHTML=moves.map((m,i)=>`<div style="margin-bottom:10px"><div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">${m}</div><div class="sr" id="${prefix}-${i}">${[1,2,3,4,5].map(n=>`<button class="sb" data-val="${n}" onclick="msStar('${prefix}-${i}',${n})">${n}</button>`).join('')}</div></div>`).join('');}
-  build(['Squat','Hinge (RDL)','Split Squat'],'ms-lb-moves','mslb');
-  build(['Push-up'],'ms-ub-moves','msub');
-}
-function msStar(rowId,val){document.querySelectorAll(`#${rowId} .sb`).forEach(btn=>{const v=+btn.dataset.val;if(v<=val){btn.classList.add('sel');btn.style.background=rcol(val);btn.style.borderColor=rcol(val);btn.style.color='#fff';}else{btn.classList.remove('sel');btn.style.background='';btn.style.borderColor='';btn.style.color='';}});document.getElementById(rowId).dataset.val=val;}
-function msGetR(id){return+document.getElementById(id)?.dataset.val||3;}
-function msSave(){
-  const p=document.getElementById('ms-ep').value,date=document.getElementById('ms-ed').value,sess=document.getElementById('ms-es').value,notes=document.getElementById('ms-notes').value;
-  MS_LOCAL.unshift({player:p,date,session:sess,squat:msGetR('mslb-0'),hinge:msGetR('mslb-1'),splitSquat:msGetR('mslb-2'),pushups:msGetR('msub-0'),notes});
-  const msg=document.getElementById('ms-msg');msg.style.display='inline';setTimeout(()=>msg.style.display='none',3000);
-  renderMSOv();renderMSRecent();
+  renderMSOv();
 }
 function renderMSOv(){
   const ageF=document.getElementById('ms-age-filter')?.value||'all';
@@ -2265,7 +2202,6 @@ function renderMSOv(){
     if(dateF==='latest')rows.push({player:name,...sorted[0]});
     else sorted.forEach(s=>rows.push({player:name,...s}));
   });
-  MS_LOCAL.forEach(s=>rows.unshift(s));
   document.getElementById('tbl-ms-ov').innerHTML=`<thead><tr><th>Player</th><th>Age</th><th>Date</th><th>Squat</th><th>Hinge</th><th>Split Squat</th><th>Push-up</th><th>Avg</th></tr></thead><tbody>`+
     rows.map(s=>{const vals=[s.squat,s.hinge,s.splitSquat,s.pushups].filter(x=>x>0);const a=vals.length?+(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):0;return`<tr><td style="font-weight:600">${s.player}</td><td>${ageBadge(s.age)}</td><td style="color:#888">${s.date||'—'}</td><td>${rpill(s.squat||0)}</td><td>${rpill(s.hinge||0)}</td><td>${rpill(s.splitSquat||0)}</td><td>${rpill(s.pushups||0)}</td><td style="font-family:var(--font);font-size:15px;font-weight:800;color:${rcol(Math.round(a))}">${a}</td></tr>`;}).join('')+'</tbody>';
   const dist=[0,0,0,0,0];
@@ -2274,15 +2210,6 @@ function renderMSOv(){
   const c1=document.getElementById('c-ms-lb');if(c1){if(CH['c-ms-lb'])CH['c-ms-lb'].destroy();CH['c-ms-lb']=new Chart(c1,{type:'bar',data:{labels:['1','2','3','4','5'],datasets:[{data:dist,backgroundColor:rc,borderRadius:3,borderWidth:0}]},options:bOpt()});}
   const mvAvgs=['squat','hinge','splitSquat','pushups'].map(k=>{const v=rows.map(s=>s[k]).filter(x=>x>0);return v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):0;});
   const c2=document.getElementById('c-ms-ub');if(c2){if(CH['c-ms-ub'])CH['c-ms-ub'].destroy();CH['c-ms-ub']=new Chart(c2,{type:'bar',data:{labels:['Squat','Hinge','Split Squat','Push-up'],datasets:[{data:mvAvgs,backgroundColor:mvAvgs.map(v=>rcol(Math.round(v))),borderRadius:3,borderWidth:0}]},options:{...bOpt(),scales:{...bOpt().scales,y:{...bOpt().scales?.y,max:5}}}});}
-}
-function renderMSRecent(){
-  const allRows=[];
-  const now2=new Date();
-  Object.entries(MS_DATA).forEach(([name,arr])=>{(arr||[]).filter(s=>parseDate(s.date)<=now2).forEach(s=>allRows.push({player:name,...s}));});
-  MS_LOCAL.forEach(s=>allRows.unshift(s));
-  allRows.sort((a,b)=>parseDate(b.date)-parseDate(a.date));
-  document.getElementById('tbl-ms-rec').innerHTML=`<thead><tr><th>Player</th><th>Age</th><th>Date</th><th>Squat</th><th>Hinge</th><th>Split Squat</th><th>Push-up</th></tr></thead><tbody>`+
-    allRows.slice(0,25).map(s=>`<tr><td style="font-weight:600">${s.player}</td><td>${ageBadge(s.age)}</td><td style="color:#888">${s.date||'—'}</td><td>${rpill(s.squat||0)}</td><td>${rpill(s.hinge||0)}</td><td>${rpill(s.splitSquat||0)}</td><td>${rpill(s.pushups||0)}</td></tr>`).join('')+'</tbody>';
 }
 
 // ── TRIALIST ──────────────────────────────────────────────────────
