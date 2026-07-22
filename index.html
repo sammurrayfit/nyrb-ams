@@ -961,7 +961,9 @@ function initDaily(){
   if(!data.length){data=Object.values(LATEST).filter(d=>d.dist);if(pos!=='all')data=data.filter(d=>d.pos===pos);}
   data=data.filter(d=>d.dist).sort((a,b)=>b.dist-a.dist);
   const kpis=[{k:'dist',l:'Avg Distance (m)'},{k:'dpm',l:'Avg Dist/Min'},{k:'hsr',l:'Avg HSR'},{k:'vhsr',l:'Avg VHSR'},{k:'sprint',l:'Avg Sprint'},{k:'expl',l:'Avg Explosive'},{k:'acc',l:'Avg Accels'},{k:'dec',l:'Avg Decels'}];
-  document.getElementById('daily-kpis').innerHTML=kpis.map(({k,l})=>`<div><div class="kv">${avg(data.map(d=>d[k]))}</div><div class="kl">${l}</div></div>`).join('');
+  // GK excluded from the blended average unless explicitly selected via the position filter.
+  const kpiData=pos==='all'?data.filter(d=>d.pos!=='GK'):data;
+  document.getElementById('daily-kpis').innerHTML=kpis.map(({k,l})=>`<div><div class="kv">${avg(kpiData.map(d=>d[k]))}</div><div class="kl">${l}</div></div>`).join('');
   METRICS.forEach(key=>{const sorted=[...data].filter(d=>d[key]!=null).sort((a,b)=>b[key]-a[key]);mkBarM('c-'+key,sorted.map(d=>d.player),sorted.map(d=>d[key]),sorted.map(d=>PC[d.pos]||'#888'),sorted.map(d=>(PC[d.pos]||'#888')+'55'));});
 }
 
@@ -993,7 +995,7 @@ function renderGauges(idx){
   const lf=document.getElementById('md-load').value;
   const getMins=d=>+(d.mins)||0;
   const ageF=document.getElementById('md-age')?.value||'all';
-  let mdData=(info.data||[]).filter(d=>d.dist&&(ageF==='all'||d.age===ageF));
+  let mdData=(info.data||[]).filter(d=>d.dist&&d.pos!=='GK'&&(ageF==='all'||d.age===ageF));
   if(lf==='full')mdData=mdData.filter(d=>getMins(d)>=60);
   else if(lf==='under')mdData=mdData.filter(d=>{const m=getMins(d);return m>0&&m<60;});
   const weighted=document.getElementById('md-view')?.value==='weighted';
@@ -1006,7 +1008,7 @@ function renderGauges(idx){
     return+(rows.reduce((s,d)=>s+d[k]*getMins(d),0)/rows.reduce((s,d)=>s+getMins(d),0)).toFixed(1);
   };
   const seasonData=MATCH_LIST.flatMap(([,inf])=>{
-    let d=(inf.data||[]).filter(x=>x.dist&&(ageF==='all'||x.age===ageF));
+    let d=(inf.data||[]).filter(x=>x.dist&&x.pos!=='GK'&&(ageF==='all'||x.age===ageF));
     if(lf==='full')d=d.filter(x=>getMins(x)>=60);
     else if(lf==='under')d=d.filter(x=>{const m=getMins(x);return m>0&&m<60;});
     return d;
@@ -1027,7 +1029,7 @@ function renderGauges(idx){
     const cur=+teamAvg(mdData,m);
     const sAvg=+teamAvg(seasonData,m);
     const perMatchVals=MATCH_LIST.map(([,inf])=>{
-      let d=(inf.data||[]).filter(x=>x.dist);
+      let d=(inf.data||[]).filter(x=>x.dist&&x.pos!=='GK');
       if(lf==='full')d=d.filter(x=>getMins(x)>=60);
       else if(lf==='under')d=d.filter(x=>{const m=getMins(x);return m>0&&m<60;});
       return matchAvg(d,m);
@@ -1079,6 +1081,7 @@ function renderTeamPerDay(){
   const dateSet=new Set();
   PLAYERS.forEach(p=>{
     if(ageF!=='all'&&pAge(p)!==ageF)return;
+    if(PM[p]==='GK')return;
     (GPS[p]||[]).forEach(s=>{if(s.dist&&s.date&&inSeason(s.date,seasonF))dateSet.add(s.date);});
   });
   let dates=[...dateSet].sort((a,b)=>parseDate(a)-parseDate(b));
@@ -1089,6 +1092,7 @@ function renderTeamPerDay(){
       const dayVals=[];
       PLAYERS.forEach(p=>{
         if(ageF!=='all'&&pAge(p)!==ageF)return;
+        if(PM[p]==='GK')return;
         (GPS[p]||[]).forEach(s=>{if(s.date===date&&s[k]!=null)dayVals.push(s[k]);});
       });
       if(!dayVals.length)return null;
@@ -1123,6 +1127,7 @@ function renderTeamWeek(){
     const seen=new Set();
     PLAYERS.forEach(p=>{
       if(pAge(p)!==ageF)return;
+      if(PM[p]==='GK')return;
       (GPS[p]||[]).forEach(s=>{
         if(s.week==null||!s.date)return;
         if(seasonF!=='all'&&dateToSeason(s.date)!==seasonF)return;
@@ -1148,6 +1153,7 @@ function renderTeamWeek(){
         const dayData={};
         PLAYERS.forEach(p=>{
           if(pAge(p)!==ageF)return;
+          if(PM[p]==='GK')return;
           (GPS[p]||[]).forEach(s=>{
             if(s[k]==null||s.week!==wkNum)return;
             if(+dateToSeason(s.date).slice(0,4)!==wkYear)return;
@@ -1741,7 +1747,7 @@ function renderMdpm(){
   const seasonF=document.getElementById('mdpm-season')?.value||'all';
   let sessions;
   if(player==='__group__'){
-    sessions=PLAYERS.filter(p=>AM[p]===ageF).flatMap(p=>(GPS[p]||[]).filter(s=>s.dist&&s.md&&inSeason(s.date,seasonF)));
+    sessions=PLAYERS.filter(p=>AM[p]===ageF&&PM[p]!=='GK').flatMap(p=>(GPS[p]||[]).filter(s=>s.dist&&s.md&&inSeason(s.date,seasonF)));
   } else {
     sessions=(GPS[player]||[]).filter(s=>s.dist&&s.md&&inSeason(s.date,seasonF));
   }

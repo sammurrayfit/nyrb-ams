@@ -54,7 +54,7 @@ module.exports = async (req, res) => {
       if (!matchByDate[d]) matchByDate[d] = { label: r['Session Type'], data: [] };
       matchByDate[d].data.push({
         name:    player,
-        pos:     r['Position']                          || null,
+        pos:     r['Position'] ? normalizePos(r['Position']) : null,
         age:     r['Age Group']                         || null,
         date:    d,
         session: r['Session Type'],
@@ -90,6 +90,7 @@ module.exports = async (req, res) => {
     rows.forEach(r => {
       const d = r['Date'];
       if (!d || isAggregateRow(r['Name'])) return;
+      if (normalizePos(r['Position'] || '') === 'GK') return;
       const date = new Date(d);
       if (isNaN(date)) return;
       if (!dailyMap[d]) {
