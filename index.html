@@ -521,7 +521,7 @@ tr:last-child td{border-bottom:none}
     <div class="vald-tb">
       <div style="display:flex;align-items:center;gap:6px"><span class="vl">Name</span><select class="vc" id="vald-player"></select></div>
       <div class="vtitle">RBNY Academy — Testing</div>
-      <div style="display:flex;align-items:center;gap:6px"><span class="vl">Date range</span><select class="vc" id="vald-date-range" onchange="renderVald()"><option value="all">All Dates</option><option value="latest">Latest only</option><option value="2025">2025</option><option value="2026">2026</option></select></div>
+      <div style="display:flex;align-items:center;gap:6px"><span class="vl">Date range</span><select class="vc" id="vald-date-range" onchange="renderVald()"><option value="all">All Dates</option><option value="latest">Latest only</option></select></div>
       <button class="export-btn" onclick="exportPDF('page-vald')">⬇ Export PDF</button>
     </div>
     <div class="vd" id="vald-dash"></div>
@@ -796,6 +796,12 @@ function populateSeasonDropdowns(){
     seasons.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
     sel.value=defaultSeason;
   });
+  const vdr=document.getElementById('vald-date-range');
+  if(vdr){
+    vdr.innerHTML='<option value="all">All Dates</option><option value="latest">Latest only</option>';
+    seasons.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;vdr.appendChild(o);});
+    vdr.value=defaultSeason;
+  }
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────
@@ -1749,7 +1755,7 @@ function vmtable(l,r,lbl){const asym=vasym(l,r);const lp=l&&r?Math.round(l/(l+r)
 function renderVald(){
   const pn=document.getElementById('vald-player').value;
   const dr=document.getElementById('vald-date-range')?.value||'all';
-  function fr(arr){if(!arr||!arr.length)return[];if(dr==='latest'){const l=arr[arr.length-1];return l?[l]:[];}if(dr!=='all')return arr.filter(r=>{const y=parseDate(r.date||'').getUTCFullYear();return String(y)===String(dr);});return arr;}
+  function fr(arr){if(!arr||!arr.length)return[];if(dr==='latest'){const l=arr[arr.length-1];return l?[l]:[];}if(dr!=='all')return arr.filter(r=>inSeason(r.date,dr));return arr;}
   const cmjD=fr(CMJ[pn]||[]);
   const nbD=fr(NB[pn]||[]);
   const hipAll=fr(VALD[pn]||[]).filter(r=>r.lMax>0||r.rMax>0);
