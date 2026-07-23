@@ -18,6 +18,7 @@
     { "source": "/api/mas",      "destination": "/api/mas.js" },
     { "source": "/api/movement", "destination": "/api/movement.js" },
     { "source": "/api/trialist", "destination": "/api/trialist.js" },
-    { "source": "/api/phv",      "destination": "/api/phv.js" }
+    { "source": "/api/phv",      "destination": "/api/phv.js" },
+    { "source": "/api/rpm",      "destination": "/api/rpm.js" }
   ]
 }
