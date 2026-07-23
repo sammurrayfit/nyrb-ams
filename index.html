@@ -746,6 +746,7 @@ let PLAYERS=[],GPS={},PM={},AM={},LATEST={},MATCH_LIST=[],TEAM_WEEKLY={},WEEK_KE
 let CMJ={},NB={},VALD={},SPRINT={},T505={},BROAD={},MAS_DATA={},MS_DATA={};
 let TRIALIST_CMJ={},TRIALIST_MS={};
 let PHV_DATA={};
+let RPM={};
 
 // ── ISO WEEK HELPERS ──────────────────────────────────────────────
 // Returns "YYYY-Www" ISO week key for a given Date object.
@@ -781,7 +782,7 @@ function inSeason(dateStr,season){
 function populateSeasonDropdowns(){
   const dates=[];
   Object.values(GPS).forEach(arr=>arr.forEach(s=>s.date&&dates.push(s.date)));
-  [SPRINT,T505,BROAD,CMJ,NB,MAS_DATA].forEach(obj=>Object.values(obj).forEach(arr=>arr&&arr.forEach(r=>r.date&&dates.push(r.date))));
+  [SPRINT,T505,BROAD,CMJ,NB,MAS_DATA,RPM].forEach(obj=>Object.values(obj).forEach(arr=>arr&&arr.forEach(r=>r.date&&dates.push(r.date))));
   Object.values(VALD).forEach(arr=>arr&&arr.forEach(r=>r.date&&dates.push(r.date)));
   const found=new Set(dates.map(d=>dateToSeason(d)).filter(Boolean));
   // Always include known seasons so the dropdown is never empty
@@ -828,7 +829,7 @@ function hideLoader(){document.getElementById('loader-overlay').style.display='n
 async function loadAllData(){
   showLoader();
   try{
-    const [gpsR,cmjR,nbR,hipR,spR,t5R,brR,maR,moR,trR,phvR]=await Promise.allSettled([
+    const [gpsR,cmjR,nbR,hipR,spR,t5R,brR,maR,moR,trR,phvR,rpmR]=await Promise.allSettled([
       fetch(API+'/api/gps').then(r=>r.json()),
       fetch(API+'/api/cmj').then(r=>r.json()),
       fetch(API+'/api/nordbord').then(r=>r.json()),
@@ -840,6 +841,7 @@ async function loadAllData(){
       fetch(API+'/api/movement').then(r=>r.json()),
       fetch(API+'/api/trialist').then(r=>r.json()),
       fetch(API+'/api/phv').then(r=>r.json()),
+      fetch(API+'/api/rpm').then(r=>r.json()),
     ]);
     if(gpsR.status==='fulfilled'&&!gpsR.value?.error){const d=gpsR.value;PLAYERS=(d.players||[]).sort((a,b)=>a.localeCompare(b));GPS=d.gps||{};PM=d.pos_map||{};AM=d.age_map||{};LATEST=d.latest||{};MATCH_LIST=d.match_list||[];TEAM_WEEKLY=d.team_weekly||{};WEEK_KEYS=d.week_keys||[];}
     if(cmjR.status==='fulfilled'&&!cmjR.value?.error) CMJ=cmjR.value;
@@ -852,6 +854,7 @@ async function loadAllData(){
     if(moR.status==='fulfilled'&&!moR.value?.error) MS_DATA=moR.value;
     if(trR.status==='fulfilled'&&!trR.value?.error){TRIALIST_CMJ=trR.value.cmj||{};TRIALIST_MS=trR.value.movement||{};}
     if(phvR.status==='fulfilled'&&!phvR.value?.error) PHV_DATA=phvR.value;
+    if(rpmR.status==='fulfilled'&&!rpmR.value?.error) RPM=rpmR.value;
     document.getElementById('last-updated').textContent='Updated: '+new Date().toLocaleTimeString();
   }catch(err){
     document.getElementById('loader-overlay').innerHTML=`<div style="text-align:center;color:#fff"><div style="font-size:18px;font-weight:700;margin-bottom:8px">⚠ Could not load data</div><div style="font-size:13px;opacity:.7">${err.message}</div><button onclick="loadAllData()" style="margin-top:14px;padding:8px 20px;background:#cc0000;color:#fff;border:none;border-radius:3px;cursor:pointer;font-weight:700">Retry</button></div>`;
@@ -1286,10 +1289,11 @@ function initPlayerCompare(){
   const ptSel=document.getElementById('pct-players');
   const prevPT=[...ptSel.selectedOptions].map(o=>o.value);
   ptSel.innerHTML='';
-  [...new Set([...Object.keys(SPRINT),...Object.keys(T505),...Object.keys(BROAD),...Object.keys(MAS_DATA)])].sort((a,b)=>a.localeCompare(b)).forEach(p=>{
+  [...new Set([...Object.keys(SPRINT),...Object.keys(T505),...Object.keys(BROAD),...Object.keys(MAS_DATA),...Object.keys(RPM)])].sort((a,b)=>a.localeCompare(b)).forEach(p=>{
     const o=document.createElement('option');o.value=p;o.textContent=p;
     if(prevPT.includes(p))o.selected=true;ptSel.appendChild(o);
   });
+  populateRPMOptions('pct-metric','pct-rpm-group',' — Est. 1RM (lb)');
   initPCStudio();
   pcDtypeChange();
 }
@@ -1374,6 +1378,7 @@ function renderPCTesting(){
   const lowerBetter=cat==='sprint'||cat==='t505';
   function getVal(player){
     if(cat==='broad'){const arr=BROAD[player]||[];if(!arr.length)return null;const best=[...arr].sort((a,b)=>(b.dist||0)-(a.dist||0))[0];return best&&best.dist>0?+best.dist:null;}
+    if(cat==='rpm'){const arr=(RPM[player]||[]).filter(r=>r.exercise===field);if(!arr.length)return null;const best=[...arr].sort((a,b)=>(b.oneRM||0)-(a.oneRM||0))[0];return best&&best.oneRM>0?+best.oneRM:null;}
     let arr=[];
     if(cat==='sprint')arr=SPRINT[player]||[];
     else if(cat==='t505')arr=T505[player]||[];
@@ -2149,7 +2154,16 @@ function toggleRankAgePill(btn){
   }
   renderRank();
 }
-function initRankings(){renderRank();}
+function populateRPMOptions(selId,groupId,labelSuffix){
+  const sel=document.getElementById(selId);
+  if(!sel||sel.querySelector('#'+groupId))return;
+  const exercises=[...new Set(Object.values(RPM).flat().map(r=>r.exercise).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  if(!exercises.length)return;
+  const og=document.createElement('optgroup');og.id=groupId;og.label='3RM Testing';
+  exercises.forEach(ex=>{const o=document.createElement('option');o.value='rpm-'+ex;o.textContent=ex+labelSuffix;og.appendChild(o);});
+  sel.appendChild(og);
+}
+function initRankings(){populateRPMOptions('rank-by','rank-rpm-group',' — Est. 1RM');renderRank();}
 function renderRank(){
   const rankAgePills=[...document.querySelectorAll('#rank-age-pills .age-pill.active')].map(b=>b.dataset.age);
   const ageAll=rankAgePills.length===0||rankAgePills.includes('all');
@@ -2177,6 +2191,10 @@ function renderRank(){
       const b=[...a].sort((a,b)=>(b[fk]||0)-(a[fk]||0))[0];
       return{name:n,age:b.age,pos:PM[n]||'?',val:b[fk]||0};
     }).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));
+  }
+  else if(cat==='rpm'){
+    const ex=key;
+    ranked=Object.entries(RPM).map(([n,arr])=>{const a=bestPerDate(sf(arr.filter(r=>r.exercise===ex)),(a,b)=>(a.oneRM||0)>(b.oneRM||0)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>(b.oneRM||0)-(a.oneRM||0))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b.oneRM||0};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' lb'}));
   }
   if(posF!=='all')ranked=ranked.filter(r=>r.pos===posF);
   const mx=ranked[0]?.val||1;

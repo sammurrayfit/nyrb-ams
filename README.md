@@ -89,6 +89,7 @@ it's better to set it as an environment variable:
 | `Broad_Jump` | Standing broad jump |
 | `MAS_Testing` | MAS aerobic test |
 | `Movement_Screen` | Movement screen scores |
+| `3 RPM Testing` | Rep-max strength testing (Est. 1RM) |
 
 **Tab names must match exactly** (case-sensitive).
 
@@ -122,6 +123,13 @@ it's better to set it as an environment variable:
 
 ### Movement_Screen
 `Player, Date, Session, LB Squat, LB Hinge, LB Split Squat, UB Push-up, UB Squat, UB Hinge, UB Split Squat, Notes`
+
+### 3 RPM Testing
+`Age Group, Date, GivenName, FamilyName, Exercise, Reps, Weight (lbs)`
+
+Estimated 1RM is calculated with the Epley formula: `Weight × (1 + Reps / 30)`.
+Rankings and Player Compare auto-populate one option per distinct `Exercise`
+value found in the sheet — no code changes needed to add a new lift.
 
 ---
 
