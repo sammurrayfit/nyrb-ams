@@ -603,6 +603,10 @@ tr:last-child td{border-bottom:none}
       <div class="panel sg" style="margin-top:14px"><div class="pt">Hip Adduction (Squeeze) — Force (N)</div><div class="cb-lg"><canvas id="c-test-hip-add"></canvas></div></div>
       <div class="panel sg" style="margin-top:8px"><div class="pt ptl">Adduction Results</div><div class="tw"><table id="tbl-hip-add-squad"></table></div></div>
     </div>
+    <div id="test-rpm-section" style="display:none">
+      <div class="panel sg"><div class="pt" id="rpm-chart-title">3RM Testing — Est. 1RM (lb)</div><div class="cb-lg"><canvas id="c-test-rpm"></canvas></div></div>
+      <div class="panel sg" style="margin-top:8px"><div class="pt ptl">Results</div><div class="tw"><table id="tbl-rpm-squad"></table></div></div>
+    </div>
   </div>
 </div>
 <div class="page" id="page-movement">
@@ -1743,7 +1747,7 @@ function renderMdpm(){
 function initVald(){
   const sel=document.getElementById('vald-player');
   if(!sel.options.length){
-    const names=new Set([...Object.keys(CMJ),...Object.keys(NB),...Object.keys(VALD)]);
+    const names=new Set([...Object.keys(CMJ),...Object.keys(NB),...Object.keys(VALD),...Object.keys(RPM)]);
     const sorted=[...names].sort((a,b)=>a.localeCompare(b));
     sorted.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
   }
@@ -1763,6 +1767,7 @@ function renderVald(){
   const t505D=bestPerDate(fr(T505[pn]||[]).filter(r=>r.time!=null),(a,b)=>(a.time||99)<(b.time||99));
   const masD=bestPerDate(fr(MAS_DATA[pn]||[]).filter(r=>r.mas!=null),(a,b)=>(a.mas||0)>(b.mas||0));
   const broadD=bestPerDate(fr(BROAD[pn]||[]).filter(r=>r.dist!=null),(a,b)=>(a.dist||0)>(b.dist||0));
+  const rpmD=fr(RPM[pn]||[]).filter(r=>r.oneRM!=null);
   const dn=s=>String(s||'').trim().toLowerCase();
   const hipAbd=hipAll.filter(r=>dn(r.direction)==='pull');
   const hipAdd=hipAll.filter(r=>dn(r.direction)==='squeeze');
@@ -1848,7 +1853,20 @@ function renderVald(){
         </tr>`).join('')}
       </tbody></table>
     </div>`:''}
-    ${!cmjD.length&&!nbDD.length&&!abdD.length&&!addD.length&&!broadD.length&&!sprintD.length&&!t505D.length&&!masD.length?'<div class="vp vpf" style="padding:40px;text-align:center;color:#999">No testing data for this player</div>':''}`;
+    ${rpmD.length?`<div class="vp">
+      <div class="vpt">3RM Testing <span>— ${pn}</span></div>
+      <div style="position:relative;height:240px"><canvas id="vc-rpm"></canvas></div>
+      <table class="mt" style="margin-top:8px"><thead><tr><th>Date</th><th>Exercise</th><th>Reps</th><th>Weight (lb)</th><th>Est. 1RM (lb)</th></tr></thead><tbody>
+        ${[...rpmD].sort((a,b)=>parseDate(b.date)-parseDate(a.date)).map(r=>`<tr>
+          <td style="color:#888">${r.date||'—'}</td>
+          <td style="font-weight:600">${r.exercise||'—'}</td>
+          <td>${r.reps!=null?r.reps:'—'}</td>
+          <td>${r.weight!=null?r.weight:'—'}</td>
+          <td style="font-family:var(--font);font-size:17px;font-weight:700;color:#cc0000">${r.oneRM!=null?r.oneRM.toFixed(1):'—'}</td>
+        </tr>`).join('')}
+      </tbody></table>
+    </div>`:''}
+    ${!cmjD.length&&!nbDD.length&&!abdD.length&&!addD.length&&!broadD.length&&!sprintD.length&&!t505D.length&&!masD.length&&!rpmD.length?'<div class="vp vpf" style="padding:40px;text-align:center;color:#999">No testing data for this player</div>':''}`;
   if(cmjD.length)mkValdCMJ('vc-cmj',cmjD.map(dlbl),cmjD.map(r=>r.height),cmjD.map(r=>r.rsi));
   if(nbDD.length)mkValdGrpBar('vc-nb',nbDD.map(dlbl),grpDs(nbDD));
   if(abdD.length)mkValdGrpBar('vc-hip-abd',abdD.map(dlbl),grpDs(abdD));
@@ -1858,19 +1876,26 @@ function renderVald(){
   if(t505D.length)mkValdBar('vc-505',t505D.map(dlbl),t505D.map(r=>r.time),'#444','rgba(68,68,68,0.2)');
   const mCol=v=>v>=5?'#007a30':v>=4.5?'#5a9000':v>=4?'#d4a000':v>=3.5?'#e05000':'#cc0000';
   if(masD.length)mkBarM('vc-mas',masD.map(dlbl),masD.map(r=>r.mas),masD.map(r=>mCol(r.mas)),masD.map(r=>mCol(r.mas)+'55'));
+  if(rpmD.length){
+    const byEx={};
+    rpmD.forEach(r=>{if(!byEx[r.exercise]||r.oneRM>byEx[r.exercise])byEx[r.exercise]=r.oneRM;});
+    const exs=Object.keys(byEx).sort((a,b)=>a.localeCompare(b));
+    mkValdBar('vc-rpm',exs,exs.map(e=>byEx[e]),'#cc0000','rgba(204,0,0,0.2)');
+  }
 }
 
 // ── TESTING ───────────────────────────────────────────────────────
-function initTesting(){}
+function initTesting(){populateRPMOptions('test-sort','test-rpm-group',' — Est. 1RM');}
 function onTestChange(){
   const val=document.getElementById('test-sort').value;
-  ['test-sprint-section','test-mas-section','test-broad-section','test-cmj-section','test-nb-section','test-hip-section','test-placeholder'].forEach(id=>document.getElementById(id).style.display='none');
+  ['test-sprint-section','test-mas-section','test-broad-section','test-cmj-section','test-nb-section','test-hip-section','test-rpm-section','test-placeholder'].forEach(id=>document.getElementById(id).style.display='none');
   if(!val){document.getElementById('test-placeholder').style.display='block';return;}
   if(val==='mas'){document.getElementById('test-mas-section').style.display='block';renderMAS();}
   else if(val==='broad'){document.getElementById('test-broad-section').style.display='block';renderBroad();}
   else if(val==='cmj'){document.getElementById('test-cmj-section').style.display='block';renderCMJSquad();}
   else if(val==='nordbord'){document.getElementById('test-nb-section').style.display='block';renderNBSquad();}
   else if(val==='hipforce'){document.getElementById('test-hip-section').style.display='block';renderHipSquad();}
+  else if(val.startsWith('rpm-')){document.getElementById('test-rpm-section').style.display='block';renderRPMSquad();}
   else{document.getElementById('test-sprint-section').style.display='block';renderTesting();}
 }
 function renderBroad(){
@@ -1908,6 +1933,40 @@ function renderBroad(){
       <td colspan="4" style="font-family:var(--font);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#888;padding:6px 10px">Squad Avg</td>
       <td style="font-family:var(--font);font-size:16px;font-weight:800;color:#cc0000">${avg(players.map(p=>p.dist)).toFixed(1)} cm</td>
       <td></td>
+    </tr>`+
+    '</tbody>';
+}
+function renderRPMSquad(){
+  const f=ageF();
+  const resultF=document.getElementById('test-result')?.value||'best';
+  const seasonF=document.getElementById('test-season')?.value||'all';
+  const val=document.getElementById('test-sort').value;
+  const ex=val.slice(4);
+  const titleEl=document.getElementById('rpm-chart-title');if(titleEl)titleEl.textContent=ex+' — Est. 1RM (lb)';
+  const players=Object.entries(RPM).map(([name,arr])=>{
+    const deduped=bestPerDate((arr||[]).filter(r=>r.exercise===ex&&r.oneRM!=null&&inSeason(r.date,seasonF)),(a,b)=>(a.oneRM||0)>(b.oneRM||0));
+    if(!deduped.length)return null;
+    const rec=resultF==='recent'?deduped[deduped.length-1]:[...deduped].sort((a,b)=>(b.oneRM||0)-(a.oneRM||0))[0];
+    if(!rec||!rec.oneRM)return null;
+    return{name,age:rec.age||arr[0]?.age,pos:PM[name]||'?',val:+rec.oneRM,weight:rec.weight,reps:rec.reps,date:rec.date};
+  }).filter(Boolean).filter(p=>ageMatch(p.age,f)).sort((a,b)=>b.val-a.val);
+  const cols=players.map(p=>PC[p.pos]||'#888');
+  mkBarM('c-test-rpm',players.map(p=>p.name),players.map(p=>p.val),cols,cols.map(c=>c+'55'));
+  document.getElementById('tbl-rpm-squad').innerHTML=
+    `<thead><tr><th>Rank</th><th>Player</th><th>Age</th><th>Pos</th><th>${resultF==='recent'?'Most Recent':'Best'} Est. 1RM (lb)</th><th>Weight × Reps</th><th>Date</th></tr></thead><tbody>`+
+    players.map((p,i)=>`<tr>
+      <td><span class="rn ${i<3?'top':''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</span></td>
+      <td style="font-weight:600">${p.name}</td>
+      <td>${ageBadge(p.age||'?')}</td>
+      <td>${posBadge(p.pos)}</td>
+      <td style="font-family:var(--font);font-size:16px;font-weight:800;color:${i<3?'#cc0000':'#1a1a1a'}">${p.val.toFixed(1)}</td>
+      <td style="color:#888;font-size:12px">${p.weight!=null?p.weight+' lb':'—'} × ${p.reps!=null?p.reps:'—'}</td>
+      <td style="color:#888;font-size:12px">${p.date||'—'}</td>
+    </tr>`).join('')+
+    `<tr style="background:#f8f8f8;border-top:2px solid var(--border)">
+      <td colspan="4" style="font-family:var(--font);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#888;padding:6px 10px">Squad Avg</td>
+      <td style="font-family:var(--font);font-size:16px;font-weight:800;color:#cc0000">${avg(players.map(p=>p.val)).toFixed(1)}</td>
+      <td></td><td></td>
     </tr>`+
     '</tbody>';
 }
