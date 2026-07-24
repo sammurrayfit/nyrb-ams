@@ -2022,24 +2022,26 @@ function renderTestTable(data,type,resultF){
   if(type==='t505'){
     // 5-0-5 only: just player info + time, no splits
     document.getElementById('tbl-testing').innerHTML=
-      `<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>5-0-5 Time</th></tr></thead><tbody>`+
+      `<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>5-0-5 Time</th><th>Date</th></tr></thead><tbody>`+
       data.map((p,i)=>`<tr>
         <td><span class="rn ${i<3?'top':''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</span></td>
         <td style="font-weight:600">${p.name}</td>
         <td>${ageBadge(p.age)}</td>
         <td>${posBadge(PM[p.name]||'?')}</td>
         <td style="font-family:var(--font);font-size:16px;font-weight:800;color:#cc0000">${p.time?.toFixed(3)||'—'}s</td>
+        <td style="color:#888;font-size:12px">${p.date||'—'}</td>
       </tr>`).join('')+
       `<tr style="background:#f8f8f8;border-top:2px solid var(--border)">
         <td colspan="4" style="font-family:var(--font);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#888;padding:6px 10px">Squad Avg</td>
         <td style="font-family:var(--font);font-size:16px;font-weight:800;color:#cc0000">${avg(data.map(p=>p.time)).toFixed(3)}s</td>
+        <td></td>
       </tr>`+
       '</tbody>';
     return;
   }
   // Sprint: show splits + total, no 5-0-5 column
   document.getElementById('tbl-testing').innerHTML=
-    `<thead><tr><th>Player</th><th>Age</th><th>Pos</th><th>0-10m</th><th>10-20m</th><th>20-30m</th><th>Total</th></tr></thead><tbody>`+
+    `<thead><tr><th>Player</th><th>Age</th><th>Pos</th><th>0-10m</th><th>10-20m</th><th>20-30m</th><th>Total</th><th>Date</th></tr></thead><tbody>`+
     data.map(p=>`<tr>
       <td style="font-weight:600">${p.name}</td>
       <td>${ageBadge(p.age)}</td>
@@ -2048,6 +2050,7 @@ function renderTestTable(data,type,resultF){
       <td>${p.split2?.toFixed(3)||'—'}s</td>
       <td>${p.split3?.toFixed(3)||'—'}s</td>
       <td style="font-family:var(--font);font-size:14px;font-weight:800;color:#cc0000">${p.total?.toFixed(3)||'—'}s</td>
+      <td style="color:#888;font-size:12px">${p.date||'—'}</td>
     </tr>`).join('')+
     `<tr style="background:#f8f8f8;border-top:2px solid var(--border)">
       <td colspan="3" style="font-family:var(--font);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#888;padding:6px 10px">Squad Avg</td>
@@ -2055,6 +2058,7 @@ function renderTestTable(data,type,resultF){
       <td>${avg(data.map(p=>p.split2)).toFixed(3)}s</td>
       <td>${avg(data.map(p=>p.split3)).toFixed(3)}s</td>
       <td style="font-family:var(--font);font-size:14px;font-weight:800;color:#cc0000">${avg(data.map(p=>p.total)).toFixed(3)}s</td>
+      <td></td>
     </tr>`+
     '</tbody>';
 }
@@ -2071,7 +2075,7 @@ function renderMAS(){
       if(!deduped.length)return null;
       const rec=resultF==='recent'?deduped[deduped.length-1]:[...deduped].filter(r=>r.mas!=null).sort((a,b)=>b.mas-a.mas)[0];
       if(!rec)return null;
-      return{name,age:rec.age||null,pos:PM[name]||'?',distance:rec.distance,time:rec.time,mas:rec.mas};
+      return{name,age:rec.age||null,pos:PM[name]||'?',distance:rec.distance,time:rec.time,mas:rec.mas,date:rec.date};
     }).filter(Boolean).filter(p=>ageMatch(p.age,f));
   if(sortBy==='mas')players.sort((a,b)=>b.mas-a.mas);
   else if(sortBy==='distance')players.sort((a,b)=>(b.distance||0)-(a.distance||0));
@@ -2085,7 +2089,7 @@ function renderMAS(){
   mkBarM('c-mas-score',labels,masVals,colors,colors.map(c=>c+'55'));
   mkBarM('c-mas-dist',labels,distVals,colors,colors.map(c=>c+'55'));
   document.getElementById('tbl-mas').innerHTML=
-    `<thead><tr><th>Player</th><th>Age</th><th>Pos</th><th>Distance (m)</th><th>Time (s)</th><th>MAS Score</th><th>Level</th></tr></thead><tbody>`+
+    `<thead><tr><th>Player</th><th>Age</th><th>Pos</th><th>Distance (m)</th><th>Time (s)</th><th>MAS Score</th><th>Level</th><th>Date</th></tr></thead><tbody>`+
     players.map(p=>`<tr>
       <td style="font-weight:600">${p.name}</td>
       <td>${ageBadge(p.age||'?')}</td>
@@ -2094,6 +2098,7 @@ function renderMAS(){
       <td style="color:#888">${p.time!=null?p.time+'s':'—'}</td>
       <td><span style="font-family:var(--font);font-size:18px;font-weight:800;color:${mCol(p.mas)}">${p.mas}</span></td>
       <td><span style="background:${mCol(p.mas)};color:#fff;padding:2px 8px;border-radius:3px;font-family:var(--font);font-size:11px;font-weight:700">${mLbl(p.mas)}</span></td>
+      <td style="color:#888;font-size:12px">${p.date||'—'}</td>
     </tr>`).join('')+
     (()=>{const a=avg(players.map(p=>p.mas));return`<tr style="background:#f8f8f8;border-top:2px solid var(--border)">
       <td colspan="3" style="font-family:var(--font);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#888;padding:6px 10px">Squad Avg</td>
@@ -2101,6 +2106,7 @@ function renderMAS(){
       <td></td>
       <td><span style="font-family:var(--font);font-size:18px;font-weight:800;color:${mCol(a)}">${a}</span></td>
       <td><span style="background:${mCol(a)};color:#fff;padding:2px 8px;border-radius:3px;font-family:var(--font);font-size:11px;font-weight:700">${mLbl(a)}</span></td>
+      <td></td>
     </tr>`;})()+
     '</tbody>';
 }
@@ -2240,32 +2246,32 @@ function renderRank(){
   function fa(age){return ageAll||rankAgePills.includes(age);}
   const dn=s=>String(s||'').trim().toLowerCase();
   const sf=arr=>(arr||[]).filter(r=>inSeason(r.date,seasonF));
-  if(cat==='sprint'){ranked=Object.entries(SPRINT).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a[key]||99)<(b[key]||99)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>(a[key]||99)-(b[key]||99))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b[key]||99};}).filter(Boolean).filter(r=>r.val<99).sort((a,b)=>a.val-b.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(3)+'s',lower:true}));}
-  else if(cat==='t505'){ranked=Object.entries(T505).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a.time||99)<(b.time||99)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>a.time-b.time)[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b.time};}).filter(Boolean).filter(r=>r.val).sort((a,b)=>a.val-b.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(3)+'s',lower:true}));}
-  else if(cat==='broad'){ranked=Object.entries(BROAD).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a.dist||0)>(b.dist||0));if(!a.length)return null;const best=[...a].sort((a,b)=>(b.dist||0)-(a.dist||0))[0];if(!best||!best.dist)return null;return{name:n,age:best.age||arr[0]?.age,pos:PM[n]||'?',val:+best.dist};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' cm'}));}
-  else if(cat==='cmj'){ranked=Object.entries(CMJ).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a[key]||0)>(b[key]||0)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>b[key]-a[key])[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b[key]||0};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:key==='rsi'?r.val.toFixed(3):r.val.toFixed(1)+(key==='height'?' cm':' W/kg')}));}
+  if(cat==='sprint'){ranked=Object.entries(SPRINT).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a[key]||99)<(b[key]||99)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>(a[key]||99)-(b[key]||99))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b[key]||99,date:b.date};}).filter(Boolean).filter(r=>r.val<99).sort((a,b)=>a.val-b.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(3)+'s',lower:true}));}
+  else if(cat==='t505'){ranked=Object.entries(T505).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a.time||99)<(b.time||99)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>a.time-b.time)[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b.time,date:b.date};}).filter(Boolean).filter(r=>r.val).sort((a,b)=>a.val-b.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(3)+'s',lower:true}));}
+  else if(cat==='broad'){ranked=Object.entries(BROAD).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a.dist||0)>(b.dist||0));if(!a.length)return null;const best=[...a].sort((a,b)=>(b.dist||0)-(a.dist||0))[0];if(!best||!best.dist)return null;return{name:n,age:best.age||arr[0]?.age,pos:PM[n]||'?',val:+best.dist,date:best.date};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' cm'}));}
+  else if(cat==='cmj'){ranked=Object.entries(CMJ).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a[key]||0)>(b[key]||0)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>b[key]-a[key])[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b[key]||0,date:b.date};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:key==='rsi'?r.val.toFixed(3):r.val.toFixed(1)+(key==='height'?' cm':' W/kg')}));}
   else if(cat==='nb'){
-    if(sub==='bilateral'){ranked=Object.entries(NB).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>((a.lMax||0)+(a.rMax||0))>((b.lMax||0)+(b.rMax||0))).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];const v=b?+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2:0;return{name:n,age:b?.age,pos:PM[n]||'?',val:v};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));}
-    else{const fk=sub==='lMax'?'lMax':'rMax';ranked=Object.entries(NB).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a[fk]||0)>(b[fk]||0)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,c)=>(c[fk]||0)-(a[fk]||0))[0];return{name:n,age:b?.age,pos:PM[n]||'?',val:b?.[fk]||0};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));}
+    if(sub==='bilateral'){ranked=Object.entries(NB).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>((a.lMax||0)+(a.rMax||0))>((b.lMax||0)+(b.rMax||0))).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];const v=b?+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2:0;return{name:n,age:b?.age,pos:PM[n]||'?',val:v,date:b?.date};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));}
+    else{const fk=sub==='lMax'?'lMax':'rMax';ranked=Object.entries(NB).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a[fk]||0)>(b[fk]||0)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,c)=>(c[fk]||0)-(a[fk]||0))[0];return{name:n,age:b?.age,pos:PM[n]||'?',val:b?.[fk]||0,date:b?.date};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));}
   }
   else if(cat==='hip'){
     const isAbd=sub==='abd';const dir=isAbd?'pull':'squeeze';const fk=parts[2];
     ranked=Object.entries(VALD).map(([n,arr])=>{
       const a=bestPerDate(sf(arr).filter(r=>dn(r.direction)===dir),(a,b)=>((a.lMax||0)+(a.rMax||0))>((b.lMax||0)+(b.rMax||0))).filter(r=>fa(r.age)&&(r.lMax>0||r.rMax>0));if(!a.length)return null;
-      if(fk==='bilateral'){const b=[...a].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2};}
+      if(fk==='bilateral'){const b=[...a].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2,date:b.date};}
       const b=[...a].sort((a,b)=>(b[fk]||0)-(a[fk]||0))[0];
-      return{name:n,age:b.age,pos:PM[n]||'?',val:b[fk]||0};
+      return{name:n,age:b.age,pos:PM[n]||'?',val:b[fk]||0,date:b.date};
     }).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));
   }
   else if(cat==='rpm'){
     const ex=key;
-    ranked=Object.entries(RPM).map(([n,arr])=>{const a=bestPerDate(sf(arr.filter(r=>r.exercise===ex)),(a,b)=>(a.oneRM||0)>(b.oneRM||0)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>(b.oneRM||0)-(a.oneRM||0))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b.oneRM||0};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' lb'}));
+    ranked=Object.entries(RPM).map(([n,arr])=>{const a=bestPerDate(sf(arr.filter(r=>r.exercise===ex)),(a,b)=>(a.oneRM||0)>(b.oneRM||0)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>(b.oneRM||0)-(a.oneRM||0))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b.oneRM||0,date:b.date};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' lb'}));
   }
   if(posF!=='all')ranked=ranked.filter(r=>r.pos===posF);
   const mx=ranked[0]?.val||1;
   const M=['🥇','🥈','🥉'];
-  document.getElementById('tbl-rank').innerHTML=`<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Score</th><th style="min-width:120px">Bar</th></tr></thead><tbody>`+
-    ranked.map((r,i)=>{const pc=Math.min(r.lower?Math.max(10,100-Math.round(r.val/mx*50)):Math.round(r.val/mx*100),100);return`<tr><td><span class="rn ${i<3?'top':''}">${i<3?M[i]:i+1}</span></td><td style="font-weight:600">${r.name}</td><td>${ageBadge(r.age)}</td><td>${posBadge(r.pos)}</td><td style="font-family:var(--font);font-size:16px;font-weight:800;color:${i<3?'#cc0000':'#1a1a1a'}">${r.str}</td><td><div class="rb-w"><div class="rb" style="width:${pc}%"></div><span style="font-size:10px;color:#888">${r.val?.toFixed?.(1)||r.val}</span></div></td></tr>`;}).join('')+'</tbody>';
+  document.getElementById('tbl-rank').innerHTML=`<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Score</th><th style="min-width:120px">Bar</th><th>Date</th></tr></thead><tbody>`+
+    ranked.map((r,i)=>{const pc=Math.min(r.lower?Math.max(10,100-Math.round(r.val/mx*50)):Math.round(r.val/mx*100),100);return`<tr><td><span class="rn ${i<3?'top':''}">${i<3?M[i]:i+1}</span></td><td style="font-weight:600">${r.name}</td><td>${ageBadge(r.age)}</td><td>${posBadge(r.pos)}</td><td style="font-family:var(--font);font-size:16px;font-weight:800;color:${i<3?'#cc0000':'#1a1a1a'}">${r.str}</td><td><div class="rb-w"><div class="rb" style="width:${pc}%"></div><span style="font-size:10px;color:#888">${r.val?.toFixed?.(1)||r.val}</span></div></td><td style="color:#888;font-size:12px">${r.date||'—'}</td></tr>`;}).join('')+'</tbody>';
 }
 
 // ── MOVEMENT SCREEN ───────────────────────────────────────────────
