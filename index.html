@@ -2127,7 +2127,7 @@ function renderMAS(){
   const mLbl=v=>v>=5?'Elite':v>=4.5?'Good':v>=4?'Average':v>=3.5?'Below Avg':'Poor';
   const labels=players.map(p=>p.name);
   const masVals=players.map(p=>p.mas);
-  const distVals=players.map(p=>p.distance||0);
+  const distVals=players.map(p=>p.distance!=null?p.distance:null);
   const colors=players.map(p=>mCol(p.mas));
   const masDates=players.map(p=>p.date);
   mkBarM('c-mas-score',labels,masVals,colors,colors.map(c=>c+'55'),masDates);
