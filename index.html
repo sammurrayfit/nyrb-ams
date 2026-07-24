@@ -683,6 +683,7 @@ tr:last-child td{border-bottom:none}
       <span class="cl">Sort by:</span>
       <select class="ctrl" id="spd-sort" onchange="renderSpeedExp()">
         <option value="days">Days Since 90%+ (most overdue first)</option>
+        <option value="days85">Days Since 85%+ (most overdue first)</option>
         <option value="topspeed">Top Speed (fastest first)</option>
         <option value="name">Name</option>
       </select>
@@ -826,7 +827,7 @@ function populateSeasonDropdowns(){
   const seasons=[...found].sort().reverse();
   const currentSeason=dateToSeason(new Date().toISOString().slice(0,10))||'2025-26';
   const defaultSeason=seasons.includes(currentSeason)?currentSeason:seasons[0];
-  ['mdpm-season','test-season','rank-season','pcs-season','tpd-season','tw-season','pd-season','pw-season'].forEach(id=>{
+  ['mdpm-season','test-season','rank-season','pcs-season','tpd-season','tw-season','pd-season','pw-season','spd-season'].forEach(id=>{
     const sel=document.getElementById(id);if(!sel)return;
     sel.innerHTML='<option value="all">All Seasons</option>';
     seasons.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
@@ -837,14 +838,6 @@ function populateSeasonDropdowns(){
     vdr.innerHTML='<option value="all">All Dates</option><option value="latest">Latest only</option>';
     seasons.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;vdr.appendChild(o);});
     vdr.value=defaultSeason;
-  }
-  // Top speed defaults to all-time (not current season) so it always
-  // reflects a player's true personal best unless a season is chosen.
-  const spd=document.getElementById('spd-season');
-  if(spd){
-    spd.innerHTML='<option value="all">All Seasons</option>';
-    seasons.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;spd.appendChild(o);});
-    spd.value='all';
   }
 }
 
@@ -2353,17 +2346,24 @@ function renderSpeedExp(){
     const pos=PM[name]||'?';
     if(posF!=='all'&&pos!==posF)return null;
     const topSpeed=Math.max(...sessions.map(s=>s.maxspd));
-    const threshold=+(topSpeed*0.9).toFixed(2);
-    const hits=sessions.filter(s=>s.maxspd>=threshold).sort((a,b)=>parseDate(b.date)-parseDate(a.date));
-    const last=hits[0]||null;
-    const daysSince=last?Math.max(0,Math.round((now-parseDate(last.date))/86400000)):null;
-    return{name,age,pos,topSpeed:+topSpeed.toFixed(2),threshold,lastDate:last?.date||null,daysSince};
+    const pct=p=>{
+      const threshold=+(topSpeed*p).toFixed(2);
+      const hits=sessions.filter(s=>s.maxspd>=threshold).sort((a,b)=>parseDate(b.date)-parseDate(a.date));
+      const last=hits[0]||null;
+      const daysSince=last?Math.max(0,Math.round((now-parseDate(last.date))/86400000)):null;
+      return{threshold,lastDate:last?.date||null,daysSince};
+    };
+    const p90=pct(0.9),p85=pct(0.85);
+    return{name,age,pos,topSpeed:+topSpeed.toFixed(2),
+      threshold:p90.threshold,lastDate:p90.lastDate,daysSince:p90.daysSince,
+      threshold85:p85.threshold,lastDate85:p85.lastDate,daysSince85:p85.daysSince};
   }).filter(Boolean);
   if(sortBy==='topspeed')rows.sort((a,b)=>b.topSpeed-a.topSpeed);
   else if(sortBy==='name')rows.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(sortBy==='days85')rows.sort((a,b)=>(b.daysSince85??-1)-(a.daysSince85??-1));
   else rows.sort((a,b)=>(b.daysSince??-1)-(a.daysSince??-1));
   document.getElementById('tbl-speedexp').innerHTML=
-    `<thead><tr><th>Player</th><th>Age</th><th>Pos</th><th>Top Speed (m/s)</th><th>90% Threshold (m/s)</th><th>Last Hit 90%+</th><th>Days Since</th></tr></thead><tbody>`+
+    `<thead><tr><th>Player</th><th>Age</th><th>Pos</th><th>Top Speed (m/s)</th><th>90% Threshold (m/s)</th><th>Last Hit 90%+</th><th>Days Since 90%+</th><th>85% Threshold (m/s)</th><th>Last Hit 85%+</th><th>Days Since 85%+</th></tr></thead><tbody>`+
     rows.map(r=>`<tr>
       <td style="font-weight:600">${r.name}</td>
       <td>${ageBadge(r.age)}</td>
@@ -2372,6 +2372,9 @@ function renderSpeedExp(){
       <td style="color:#888">${r.threshold.toFixed(2)}</td>
       <td style="color:#888;font-size:12px">${r.lastDate||'—'}</td>
       <td><span class="badge" style="background:${spdCol(r.daysSince)};color:#fff">${r.daysSince!=null?r.daysSince+'d':'—'}</span></td>
+      <td style="color:#888">${r.threshold85.toFixed(2)}</td>
+      <td style="color:#888;font-size:12px">${r.lastDate85||'—'}</td>
+      <td><span class="badge" style="background:${spdCol(r.daysSince85)};color:#fff">${r.daysSince85!=null?r.daysSince85+'d':'—'}</span></td>
     </tr>`).join('')+
     '</tbody>';
 }
