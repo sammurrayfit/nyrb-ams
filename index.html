@@ -130,6 +130,7 @@ tr:last-child td{border-bottom:none}
   <div class="nav-tab" data-p="movement">Movement Screen</div>
   <div class="nav-tab" data-p="phv">Growth &amp; Maturation</div>
   <div class="nav-tab" data-p="rank">Rankings</div>
+  <div class="nav-tab" data-p="speedexp">Speed Exposure</div>
   <div class="nav-tab" data-p="playercompare">Player Compare</div>
   <div class="nav-tab" data-p="trialist">Trialist</div>
 </div>
@@ -662,6 +663,35 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- SPEED EXPOSURE -->
+<div class="page" id="page-speedexp">
+  <div class="main">
+    <div class="ctrl-row">
+      <span class="cl">Age:</span>
+      <div id="spd-age-pills" style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="age-pill active" data-age="all" onclick="toggleSpdAgePill(this)">All</button>
+        <button class="age-pill" data-age="U13" onclick="toggleSpdAgePill(this)">U13</button>
+        <button class="age-pill" data-age="U14" onclick="toggleSpdAgePill(this)">U14</button>
+        <button class="age-pill" data-age="U15" onclick="toggleSpdAgePill(this)">U15</button>
+        <button class="age-pill" data-age="U16" onclick="toggleSpdAgePill(this)">U16</button>
+        <button class="age-pill" data-age="U18" onclick="toggleSpdAgePill(this)">U18</button>
+      </div>
+      <span class="cl">Pos:</span>
+      <select class="ctrl" id="spd-pos" onchange="renderSpeedExp()"><option value="all">All</option><option value="CB">CB</option><option value="FW">FW</option><option value="FB">FB</option><option value="GK">GK</option><option value="MF">MF</option></select>
+      <span class="cl">Sort by:</span>
+      <select class="ctrl" id="spd-sort" onchange="renderSpeedExp()">
+        <option value="days">Days Since 90%+ (most overdue first)</option>
+        <option value="topspeed">Top Speed (fastest first)</option>
+        <option value="name">Name</option>
+      </select>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:6px">
+      <button class="export-btn" onclick="exportPDF('page-speedexp')">⬇ Export PDF</button>
+    </div>
+    <div class="tw"><table id="tbl-speedexp"></table></div>
+  </div>
+</div>
+
 <!-- PHV -->
 <div class="page" id="page-phv">
   <div class="main">
@@ -878,7 +908,7 @@ async function loadAllData(){
 
 // ── NAV ───────────────────────────────────────────────────────────
 const DONE={};
-const INITS={daily:initDaily,matchday:initMatchday,teamperday:initTeamPerDay,teamweek:initTeamweek,playerday:initPlayerday,playerweek:initPlayerweek,acwr:initACWR,playercompare:initPlayerCompare,mdpm:initMdpm,vald:initVald,testing:initTesting,movement:initMovement,rank:initRankings,trialist:initTrialist,phv:initPHV};
+const INITS={daily:initDaily,matchday:initMatchday,teamperday:initTeamPerDay,teamweek:initTeamweek,playerday:initPlayerday,playerweek:initPlayerweek,acwr:initACWR,playercompare:initPlayerCompare,mdpm:initMdpm,vald:initVald,testing:initTesting,movement:initMovement,rank:initRankings,speedexp:initSpeedExp,trialist:initTrialist,phv:initPHV};
 document.querySelectorAll('.nav-tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById('page-'+t.dataset.p).classList.add('active');const p=t.dataset.p;if(p==='playercompare'){initPlayerCompare();}else if(!DONE[p]){DONE[p]=true;INITS[p]&&INITS[p]();}});});
 function populateDropdown(id){
   const sel=document.getElementById(id);if(!sel||sel.options.length)return;
@@ -2272,6 +2302,62 @@ function renderRank(){
   const M=['🥇','🥈','🥉'];
   document.getElementById('tbl-rank').innerHTML=`<thead><tr><th>#</th><th>Player</th><th>Age</th><th>Pos</th><th>Score</th><th style="min-width:120px">Bar</th><th>Date</th></tr></thead><tbody>`+
     ranked.map((r,i)=>{const pc=Math.min(r.lower?Math.max(10,100-Math.round(r.val/mx*50)):Math.round(r.val/mx*100),100);return`<tr><td><span class="rn ${i<3?'top':''}">${i<3?M[i]:i+1}</span></td><td style="font-weight:600">${r.name}</td><td>${ageBadge(r.age)}</td><td>${posBadge(r.pos)}</td><td style="font-family:var(--font);font-size:16px;font-weight:800;color:${i<3?'#cc0000':'#1a1a1a'}">${r.str}</td><td><div class="rb-w"><div class="rb" style="width:${pc}%"></div><span style="font-size:10px;color:#888">${r.val?.toFixed?.(1)||r.val}</span></div></td><td style="color:#888;font-size:12px">${r.date||'—'}</td></tr>`;}).join('')+'</tbody>';
+}
+
+// ── SPEED EXPOSURE ────────────────────────────────────────────────
+// Flags players who haven't recently touched 90% of their all-time top
+// speed — a common return-to-play / hamstring-risk monitoring signal.
+function toggleSpdAgePill(btn){
+  const pills=[...document.querySelectorAll('#spd-age-pills .age-pill')];
+  if(btn.dataset.age==='all'){
+    pills.forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+  } else {
+    pills.find(p=>p.dataset.age==='all')?.classList.remove('active');
+    btn.classList.toggle('active');
+    if(!pills.some(p=>p.classList.contains('active'))){
+      pills.find(p=>p.dataset.age==='all')?.classList.add('active');
+    }
+  }
+  renderSpeedExp();
+}
+function spdCol(days){return days==null?'#999':days<=3?'#007a30':days<=7?'#5a9000':days<=14?'#d4a000':days<=21?'#e05000':'#cc0000';}
+function initSpeedExp(){renderSpeedExp();}
+function renderSpeedExp(){
+  const agePills=[...document.querySelectorAll('#spd-age-pills .age-pill.active')].map(b=>b.dataset.age);
+  const ageAll=agePills.length===0||agePills.includes('all');
+  const posF=document.getElementById('spd-pos').value;
+  const sortBy=document.getElementById('spd-sort').value;
+  const now=new Date();
+  let rows=Object.entries(GPS).map(([name,arr])=>{
+    const sessions=(arr||[]).filter(s=>s.dist&&s.maxspd!=null&&s.maxspd>0);
+    if(!sessions.length)return null;
+    const age=pAge(name);
+    if(!ageAll&&!agePills.includes(age))return null;
+    const pos=PM[name]||'?';
+    if(posF!=='all'&&pos!==posF)return null;
+    const topSpeed=Math.max(...sessions.map(s=>s.maxspd));
+    const threshold=+(topSpeed*0.9).toFixed(2);
+    const hits=sessions.filter(s=>s.maxspd>=threshold).sort((a,b)=>parseDate(b.date)-parseDate(a.date));
+    const last=hits[0]||null;
+    const daysSince=last?Math.max(0,Math.round((now-parseDate(last.date))/86400000)):null;
+    return{name,age,pos,topSpeed:+topSpeed.toFixed(2),threshold,lastDate:last?.date||null,daysSince};
+  }).filter(Boolean);
+  if(sortBy==='topspeed')rows.sort((a,b)=>b.topSpeed-a.topSpeed);
+  else if(sortBy==='name')rows.sort((a,b)=>a.name.localeCompare(b.name));
+  else rows.sort((a,b)=>(b.daysSince??-1)-(a.daysSince??-1));
+  document.getElementById('tbl-speedexp').innerHTML=
+    `<thead><tr><th>Player</th><th>Age</th><th>Pos</th><th>Top Speed (m/s)</th><th>90% Threshold (m/s)</th><th>Last Hit 90%+</th><th>Days Since</th></tr></thead><tbody>`+
+    rows.map(r=>`<tr>
+      <td style="font-weight:600">${r.name}</td>
+      <td>${ageBadge(r.age)}</td>
+      <td>${posBadge(r.pos)}</td>
+      <td style="font-family:var(--font);font-size:16px;font-weight:800">${r.topSpeed.toFixed(2)}</td>
+      <td style="color:#888">${r.threshold.toFixed(2)}</td>
+      <td style="color:#888;font-size:12px">${r.lastDate||'—'}</td>
+      <td><span class="badge" style="background:${spdCol(r.daysSince)};color:#fff">${r.daysSince!=null?r.daysSince+'d':'—'}</span></td>
+    </tr>`).join('')+
+    '</tbody>';
 }
 
 // ── MOVEMENT SCREEN ───────────────────────────────────────────────
