@@ -667,6 +667,8 @@ tr:last-child td{border-bottom:none}
 <div class="page" id="page-speedexp">
   <div class="main">
     <div class="ctrl-row">
+      <span class="cl">Season:</span>
+      <select class="ctrl" id="spd-season" onchange="renderSpeedExp()"><option value="all">All Seasons</option></select>
       <span class="cl">Age:</span>
       <div id="spd-age-pills" style="display:flex;gap:4px;flex-wrap:wrap">
         <button class="age-pill active" data-age="all" onclick="toggleSpdAgePill(this)">All</button>
@@ -835,6 +837,14 @@ function populateSeasonDropdowns(){
     vdr.innerHTML='<option value="all">All Dates</option><option value="latest">Latest only</option>';
     seasons.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;vdr.appendChild(o);});
     vdr.value=defaultSeason;
+  }
+  // Top speed defaults to all-time (not current season) so it always
+  // reflects a player's true personal best unless a season is chosen.
+  const spd=document.getElementById('spd-season');
+  if(spd){
+    spd.innerHTML='<option value="all">All Seasons</option>';
+    seasons.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;spd.appendChild(o);});
+    spd.value='all';
   }
 }
 
@@ -2328,9 +2338,10 @@ function renderSpeedExp(){
   const ageAll=agePills.length===0||agePills.includes('all');
   const posF=document.getElementById('spd-pos').value;
   const sortBy=document.getElementById('spd-sort').value;
+  const seasonF=document.getElementById('spd-season')?.value||'all';
   const now=new Date();
   let rows=Object.entries(GPS).map(([name,arr])=>{
-    const sessions=(arr||[]).filter(s=>s.dist&&s.maxspd!=null&&s.maxspd>0);
+    const sessions=(arr||[]).filter(s=>s.dist&&s.maxspd!=null&&s.maxspd>0&&inSeason(s.date,seasonF));
     if(!sessions.length)return null;
     const age=pAge(name);
     if(!ageAll&&!agePills.includes(age))return null;
