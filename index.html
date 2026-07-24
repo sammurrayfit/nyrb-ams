@@ -10,7 +10,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f0f0f0;--red:#cc0000;--text:#1a1a1a;--text2:#555;--text3:#888;--border:#ddd;--font:'Barlow Condensed',sans-serif;--fontb:'Barlow',sans-serif;--tbh:52px;--nvh:38px;}
+:root{--bg:#f0f0f0;--red:#cc0000;--text:#1a1a1a;--text2:#555;--text3:#888;--border:#ddd;--font:'Barlow Condensed',sans-serif;--fontb:'Barlow',sans-serif;--tbh:52px;--snh:40px;--nvh:38px;}
 body{background:var(--bg);color:var(--text);font-family:var(--fontb);font-size:13px;min-height:100vh}
 .topbar{background:var(--red);display:flex;align-items:center;gap:10px;padding:0 14px;height:var(--tbh);position:sticky;top:0;z-index:300}
 .logo-box{background:#fff;border-radius:50%;width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
@@ -19,7 +19,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--fontb);font-size:1
 .tb-pills{display:flex;gap:5px;align-items:center;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none;flex:1}
 .tb-pills::-webkit-scrollbar{display:none}
 .pill{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.28);color:#fff;font-family:var(--font);font-size:11px;font-weight:700;padding:4px 10px;border-radius:3px;display:flex;align-items:center;gap:3px;white-space:nowrap;flex-shrink:0;cursor:pointer}
-.nav{background:#fff;border-bottom:3px solid var(--red);display:flex;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none;position:sticky;top:var(--tbh);z-index:200;height:var(--nvh)}
+.section-nav{background:#1a1a1a;display:flex;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none;position:sticky;top:var(--tbh);z-index:210;height:var(--snh)}
+.section-nav::-webkit-scrollbar{display:none}
+.section-tab{padding:0 22px;height:var(--snh);display:flex;align-items:center;font-family:var(--font);font-size:13px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#999;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-3px;white-space:nowrap;transition:all .12s;flex-shrink:0}
+.section-tab:hover{color:#fff}
+.section-tab.active{color:#fff;border-bottom-color:var(--red);background:rgba(204,0,0,.25)}
+.nav{background:#fff;border-bottom:3px solid var(--red);display:flex;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none;position:sticky;top:calc(var(--tbh) + var(--snh));z-index:200;height:var(--nvh)}
 .nav::-webkit-scrollbar{display:none}
 .nav-tab{padding:0 12px;height:var(--nvh);display:flex;align-items:center;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-3px;white-space:nowrap;transition:all .12s;flex-shrink:0}
 .nav-tab:hover{color:var(--red);background:#fff5f5}
@@ -116,7 +121,12 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<div class="nav">
+<div class="section-nav">
+  <div class="section-tab active" data-section="dailyperf">Daily Performance</div>
+  <div class="section-tab" data-section="medical">Medical</div>
+  <div class="section-tab" data-section="testing">Testing</div>
+</div>
+<div class="nav" data-section-group="dailyperf">
   <div class="nav-tab active" data-p="daily">Daily Report</div>
   <div class="nav-tab" data-p="matchday">Match Day</div>
   <div class="nav-tab" data-p="teamperday">Team / Day</div>
@@ -125,14 +135,18 @@ tr:last-child td{border-bottom:none}
   <div class="nav-tab" data-p="playerweek">Player / Week</div>
   <div class="nav-tab" data-p="acwr">Acute:Chronic</div>
   <div class="nav-tab" data-p="mdpm">MD +/-</div>
+  <div class="nav-tab" data-p="speedexp">Speed Exposure</div>
+</div>
+<div class="nav" data-section-group="testing" style="display:none">
   <div class="nav-tab" data-p="vald">Testing (Individual)</div>
   <div class="nav-tab" data-p="testing">Testing (Squad View)</div>
   <div class="nav-tab" data-p="movement">Movement Screen</div>
-  <div class="nav-tab" data-p="phv">Growth &amp; Maturation</div>
   <div class="nav-tab" data-p="rank">Rankings</div>
-  <div class="nav-tab" data-p="speedexp">Speed Exposure</div>
   <div class="nav-tab" data-p="playercompare">Player Compare</div>
   <div class="nav-tab" data-p="trialist">Trialist</div>
+</div>
+<div class="nav" data-section-group="medical" style="display:none">
+  <div class="nav-tab" data-p="phv">Growth &amp; Maturation</div>
 </div>
 
 <!-- DAILY -->
@@ -915,7 +929,29 @@ async function loadAllData(){
 // ── NAV ───────────────────────────────────────────────────────────
 const DONE={};
 const INITS={daily:initDaily,matchday:initMatchday,teamperday:initTeamPerDay,teamweek:initTeamweek,playerday:initPlayerday,playerweek:initPlayerweek,acwr:initACWR,playercompare:initPlayerCompare,mdpm:initMdpm,vald:initVald,testing:initTesting,movement:initMovement,rank:initRankings,speedexp:initSpeedExp,trialist:initTrialist,phv:initPHV};
-document.querySelectorAll('.nav-tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.getElementById('page-'+t.dataset.p).classList.add('active');const p=t.dataset.p;if(p==='playercompare'){initPlayerCompare();}else if(!DONE[p]){DONE[p]=true;INITS[p]&&INITS[p]();}});});
+const PAGE_SECTION={};
+document.querySelectorAll('.nav[data-section-group]').forEach(navEl=>{
+  navEl.querySelectorAll('.nav-tab').forEach(t=>{PAGE_SECTION[t.dataset.p]=navEl.dataset.sectionGroup;});
+});
+const SECTION_LAST={};
+function activatePage(p){
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelector('.nav-tab[data-p="'+p+'"]')?.classList.add('active');
+  document.getElementById('page-'+p).classList.add('active');
+  SECTION_LAST[PAGE_SECTION[p]]=p;
+  if(p==='playercompare'){initPlayerCompare();}
+  else if(!DONE[p]){DONE[p]=true;INITS[p]&&INITS[p]();}
+}
+document.querySelectorAll('.nav-tab').forEach(t=>{t.addEventListener('click',()=>activatePage(t.dataset.p));});
+document.querySelectorAll('.section-tab').forEach(st=>{st.addEventListener('click',()=>{
+  const section=st.dataset.section;
+  document.querySelectorAll('.section-tab').forEach(x=>x.classList.remove('active'));
+  st.classList.add('active');
+  document.querySelectorAll('.nav[data-section-group]').forEach(navEl=>{navEl.style.display=navEl.dataset.sectionGroup===section?'':'none';});
+  const target=SECTION_LAST[section]||document.querySelector('.nav[data-section-group="'+section+'"] .nav-tab')?.dataset.p;
+  if(target)activatePage(target);
+});});
 function populateDropdown(id){
   const sel=document.getElementById(id);if(!sel||sel.options.length)return;
   [...PLAYERS].sort((a,b)=>a.localeCompare(b))
@@ -2490,7 +2526,8 @@ async function exportPDF(pageId){
   const isVald=pageId==='page-vald';
   const toHide=[
     document.querySelector('.topbar'),
-    document.querySelector('.nav'),
+    document.querySelector('.section-nav'),
+    ...document.querySelectorAll('.nav'),
     page.querySelector('.export-btn'),
     isVald?document.querySelector('.vald-tb'):null,
     isVald?null:document.querySelector('.daily-header'),
