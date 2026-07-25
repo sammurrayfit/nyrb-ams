@@ -46,14 +46,15 @@ module.exports = async (req, res) => {
     });
     const allDates = [...new Set(rows.map(r => r['Date']).filter(Boolean))].sort();
     const matchSessions = rows.filter(r => r['MD (-)'] === 'MD' && r['Distance (m)'] && !isAggregateRow(r['Name']));
-    const matchByDate = {};
+    const matchByKey = {};
     matchSessions.forEach(r => {
       const d = r['Date'];
       const player = r['Name'];
       if (!d || !player) return;
-      if (!matchByDate[d]) matchByDate[d] = { labels: new Set(), data: [] };
-      if (r['Session Type']) matchByDate[d].labels.add(r['Session Type']);
-      matchByDate[d].data.push({
+      const label = r['Session Type'] || '';
+      const key = d + '||' + label;
+      if (!matchByKey[key]) matchByKey[key] = { date: d, label, data: [] };
+      matchByKey[key].data.push({
         name:    player,
         pos:     r['Position'] ? normalizePos(r['Position']) : null,
         age:     r['Age Group']                         || null,
@@ -72,8 +73,8 @@ module.exports = async (req, res) => {
         mins:    toNum(r['Session Length (Mins)']),
       });
     });
-    const matchList = Object.entries(matchByDate)
-      .map(([date, v]) => [date, { label: [...v.labels].join(' / '), data: v.data }])
+    const matchList = Object.values(matchByKey)
+      .map(v => [v.date, { label: v.label, data: v.data }])
       .sort(([a], [b]) => a.localeCompare(b));
     const METRIC_KEYS = ['dist', 'dpm', 'hsr', 'sprint', 'expl', 'maxspd', 'acc', 'dec'];
     // Weekly value has two flavors:
