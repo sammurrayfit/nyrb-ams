@@ -19,6 +19,7 @@
     { "source": "/api/movement", "destination": "/api/movement.js" },
     { "source": "/api/trialist", "destination": "/api/trialist.js" },
     { "source": "/api/phv",      "destination": "/api/phv.js" },
-    { "source": "/api/rpm",      "destination": "/api/rpm.js" }
+    { "source": "/api/rpm",      "destination": "/api/rpm.js" },
+    { "source": "/api/medical",  "destination": "/api/medical.js" }
   ]
 }

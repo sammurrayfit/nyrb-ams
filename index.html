@@ -147,6 +147,7 @@ tr:last-child td{border-bottom:none}
 </div>
 <div class="nav" data-section-group="medical" style="display:none">
   <div class="nav-tab" data-p="phv">Growth &amp; Maturation</div>
+  <div class="nav-tab" data-p="medical">Quarterly Medical Checks</div>
 </div>
 
 <!-- DAILY -->
@@ -772,6 +773,34 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+<!-- QUARTERLY MEDICAL CHECKS -->
+<div class="page" id="page-medical">
+  <div class="main">
+    <div class="ctrl-row" style="flex-wrap:wrap;gap:8px">
+      <span class="cl">Player:</span>
+      <select class="ctrl" id="qmc-player" onchange="renderMedical()"><option value="all">All Players</option></select>
+      <span class="cl">Team:</span>
+      <select class="ctrl" id="qmc-team" onchange="renderMedical()"><option value="all">All Teams</option></select>
+      <span class="cl">Season:</span>
+      <select class="ctrl" id="qmc-season" onchange="renderMedical()"><option value="all">All Seasons</option></select>
+      <button class="export-btn" onclick="exportPDF('page-medical')">⬇ Export PDF</button>
+    </div>
+    <div class="leg-bar" style="margin-bottom:8px">
+      <span style="font-size:11px;font-weight:700;color:var(--text2);margin-right:4px">Flagged (below threshold)</span>
+      <div class="li"><div class="ld" style="background:#cc0000"></div>Dorsiflexion &lt; 30°</div>
+      <div class="li"><div class="ld" style="background:#cc0000"></div>Hamstring 90/90 &lt; 150°</div>
+      <div class="li"><div class="ld" style="background:#cc0000"></div>Groin ROM &lt; 60°</div>
+      <div class="li"><div class="ld" style="background:#cc0000"></div>IR ROM &lt; 30°</div>
+      <div class="li"><div class="ld" style="background:#cc0000"></div>Quad Ely's &lt; 90°</div>
+    </div>
+    <div id="qmc-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px"></div>
+    <div class="panel sg">
+      <div class="pt ptl">Quarterly Medical Checks</div>
+      <div class="tw"><table id="tbl-qmc"></table></div>
+    </div>
+  </div>
+</div>
+
 <!-- Loader -->
 <div id="loader-overlay" style="position:fixed;inset:0;background:rgba(10,10,10,.85);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px">
   <div style="width:44px;height:44px;border:4px solid rgba(255,255,255,.15);border-top-color:#cc0000;border-radius:50%;animation:spin 0.8s linear infinite"></div>
@@ -798,6 +827,7 @@ let CMJ={},NB={},VALD={},SPRINT={},T505={},BROAD={},MAS_DATA={},MS_DATA={};
 let TRIALIST_CMJ={},TRIALIST_MS={};
 let PHV_DATA={};
 let RPM={};
+let MEDICAL_DATA={};
 
 // ── ISO WEEK HELPERS ──────────────────────────────────────────────
 // Returns "YYYY-Www" ISO week key for a given Date object.
@@ -841,7 +871,7 @@ function populateSeasonDropdowns(){
   const seasons=[...found].sort().reverse();
   const currentSeason=dateToSeason(new Date().toISOString().slice(0,10))||'2025-26';
   const defaultSeason=seasons.includes(currentSeason)?currentSeason:seasons[0];
-  ['mdpm-season','test-season','rank-season','pcs-season','tpd-season','tw-season','pd-season','pw-season','spd-season'].forEach(id=>{
+  ['mdpm-season','test-season','rank-season','pcs-season','tpd-season','tw-season','pd-season','pw-season','spd-season','qmc-season'].forEach(id=>{
     const sel=document.getElementById(id);if(!sel)return;
     sel.innerHTML='<option value="all">All Seasons</option>';
     seasons.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
@@ -889,7 +919,7 @@ function hideLoader(){document.getElementById('loader-overlay').style.display='n
 async function loadAllData(){
   showLoader();
   try{
-    const [gpsR,cmjR,nbR,hipR,spR,t5R,brR,maR,moR,trR,phvR,rpmR]=await Promise.allSettled([
+    const [gpsR,cmjR,nbR,hipR,spR,t5R,brR,maR,moR,trR,phvR,rpmR,medR]=await Promise.allSettled([
       fetch(API+'/api/gps').then(r=>r.json()),
       fetch(API+'/api/cmj').then(r=>r.json()),
       fetch(API+'/api/nordbord').then(r=>r.json()),
@@ -902,6 +932,7 @@ async function loadAllData(){
       fetch(API+'/api/trialist').then(r=>r.json()),
       fetch(API+'/api/phv').then(r=>r.json()),
       fetch(API+'/api/rpm').then(r=>r.json()),
+      fetch(API+'/api/medical').then(r=>r.json()),
     ]);
     if(gpsR.status==='fulfilled'&&!gpsR.value?.error){const d=gpsR.value;PLAYERS=(d.players||[]).sort((a,b)=>a.localeCompare(b));GPS=d.gps||{};PM=d.pos_map||{};AM=d.age_map||{};LATEST=d.latest||{};MATCH_LIST=d.match_list||[];TEAM_WEEKLY=d.team_weekly||{};WEEK_KEYS=d.week_keys||[];}
     if(cmjR.status==='fulfilled'&&!cmjR.value?.error) CMJ=cmjR.value;
@@ -915,6 +946,7 @@ async function loadAllData(){
     if(trR.status==='fulfilled'&&!trR.value?.error){TRIALIST_CMJ=trR.value.cmj||{};TRIALIST_MS=trR.value.movement||{};}
     if(phvR.status==='fulfilled'&&!phvR.value?.error) PHV_DATA=phvR.value;
     if(rpmR.status==='fulfilled'&&!rpmR.value?.error) RPM=rpmR.value;
+    if(medR.status==='fulfilled'&&!medR.value?.error) MEDICAL_DATA=medR.value;
     document.getElementById('last-updated').textContent='Updated: '+new Date().toLocaleTimeString();
   }catch(err){
     document.getElementById('loader-overlay').innerHTML=`<div style="text-align:center;color:#fff"><div style="font-size:18px;font-weight:700;margin-bottom:8px">⚠ Could not load data</div><div style="font-size:13px;opacity:.7">${err.message}</div><button onclick="loadAllData()" style="margin-top:14px;padding:8px 20px;background:#cc0000;color:#fff;border:none;border-radius:3px;cursor:pointer;font-weight:700">Retry</button></div>`;
@@ -928,7 +960,7 @@ async function loadAllData(){
 
 // ── NAV ───────────────────────────────────────────────────────────
 const DONE={};
-const INITS={daily:initDaily,matchday:initMatchday,teamperday:initTeamPerDay,teamweek:initTeamweek,playerday:initPlayerday,playerweek:initPlayerweek,acwr:initACWR,playercompare:initPlayerCompare,mdpm:initMdpm,vald:initVald,testing:initTesting,movement:initMovement,rank:initRankings,speedexp:initSpeedExp,trialist:initTrialist,phv:initPHV};
+const INITS={daily:initDaily,matchday:initMatchday,teamperday:initTeamPerDay,teamweek:initTeamweek,playerday:initPlayerday,playerweek:initPlayerweek,acwr:initACWR,playercompare:initPlayerCompare,mdpm:initMdpm,vald:initVald,testing:initTesting,movement:initMovement,rank:initRankings,speedexp:initSpeedExp,trialist:initTrialist,phv:initPHV,medical:initMedical};
 const PAGE_SECTION={};
 document.querySelectorAll('.nav[data-section-group]').forEach(navEl=>{
   navEl.querySelectorAll('.nav-tab').forEach(t=>{PAGE_SECTION[t.dataset.p]=navEl.dataset.sectionGroup;});
@@ -2814,6 +2846,82 @@ function renderPHV(){
       <td style="font-weight:700;color:${gc}">${r.growthPct!==null?(r.growthPct.toFixed(1)+'%'):'—'}</td>
     </tr>`;
   }).join('')}</tbody>`;
+}
+
+// ── QUARTERLY MEDICAL CHECKS ────────────────────────────────────────
+function initMedical(){
+  const players=new Set();
+  const teams=new Set();
+  Object.entries(MEDICAL_DATA).forEach(([name,arr])=>{
+    players.add(name);
+    (arr||[]).forEach(r=>{if(r.team)teams.add(r.team);});
+  });
+  const pSel=document.getElementById('qmc-player');
+  pSel.innerHTML='<option value="all">All Players</option>';
+  [...players].sort().forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;pSel.appendChild(o);});
+  const tSel=document.getElementById('qmc-team');
+  tSel.innerHTML='<option value="all">All Teams</option>';
+  [...teams].sort().forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;tSel.appendChild(o);});
+  renderMedical();
+}
+// Thresholds: value below the number is flagged red
+const QMC_THRESH={lDorsi:30,rDorsi:30,lHam:150,rHam:150,lGroin:60,rGroin:60,lIR:30,rIR:30,lQuad:90,rQuad:90};
+function qmcFlagged(field,val){const t=QMC_THRESH[field];return t!=null&&val!=null&&val<t;}
+function qmcCell(field,val){
+  const flagged=qmcFlagged(field,val);
+  const style=flagged?'background:#ffdcdc;color:#a00000;font-weight:700':'';
+  return`<td style="${style}">${val!=null?val:'—'}</td>`;
+}
+function renderMedical(){
+  const playerF=document.getElementById('qmc-player')?.value||'all';
+  const teamF=document.getElementById('qmc-team')?.value||'all';
+  const seasonF=document.getElementById('qmc-season')?.value||'all';
+
+  let rows=[];
+  Object.entries(MEDICAL_DATA).forEach(([name,arr])=>{
+    if(!arr||!arr.length)return;
+    if(playerF!=='all'&&name!==playerF)return;
+    arr.forEach(r=>{
+      if(teamF!=='all'&&r.team!==teamF)return;
+      if(!inSeason(r.date,seasonF))return;
+      rows.push({name,...r});
+    });
+  });
+  rows.sort((a,b)=>parseDate(b.date)-parseDate(a.date)||a.name.localeCompare(b.name));
+
+  const fields=['lDorsi','rDorsi','lHam','rHam','lGroin','rGroin','lIR','rIR','lQuad','rQuad'];
+  const flagCount=rows.reduce((n,r)=>n+fields.filter(f=>qmcFlagged(f,r[f])).length,0);
+  const playersChecked=new Set(rows.map(r=>r.name)).size;
+  const mostRecent=rows.length?rows.reduce((m,r)=>{const d=parseDate(r.date);return!m||d>m?d:m;},null):null;
+  document.getElementById('qmc-kpis').innerHTML=[
+    {v:rows.length,l:'Checks'},
+    {v:playersChecked,l:'Players Checked'},
+    {v:flagCount,l:'Flagged Measurements'},
+    {v:mostRecent?mostRecent.toLocaleDateString():'—',l:'Most Recent'},
+  ].map(({v,l})=>`<div class="panel" style="padding:10px 12px"><div class="kv">${v}</div><div class="kl">${l}</div></div>`).join('');
+
+  const tbl=document.getElementById('tbl-qmc');
+  if(!tbl)return;
+  if(!rows.length){tbl.innerHTML='<tr><td colspan="17" style="padding:20px;text-align:center;color:#aaa">No data matches the current filters</td></tr>';return;}
+  tbl.innerHTML=`<thead><tr>
+    <th>Team</th><th>Name</th><th>Date</th>
+    <th>L CC Dorsiflexion</th><th>R CC Dorsiflexion</th>
+    <th>L Hamstring 90/90</th><th>R Hamstring 90/90</th>
+    <th>L Groin ROM</th><th>R Groin ROM</th>
+    <th>L IR ROM</th><th>R IR ROM</th>
+    <th>L Quad Ely's</th><th>R Quad Ely's</th>
+    <th>Addl notes</th><th>Nordic findings</th><th>FF Hip add findings</th><th>FF Hip abd findings</th>
+  </tr></thead><tbody>${rows.map(r=>`<tr>
+    <td>${r.team||'—'}</td>
+    <td style="font-weight:600">${r.name}</td>
+    <td>${r.date||'—'}</td>
+    ${qmcCell('lDorsi',r.lDorsi)}${qmcCell('rDorsi',r.rDorsi)}
+    ${qmcCell('lHam',r.lHam)}${qmcCell('rHam',r.rHam)}
+    ${qmcCell('lGroin',r.lGroin)}${qmcCell('rGroin',r.rGroin)}
+    ${qmcCell('lIR',r.lIR)}${qmcCell('rIR',r.rIR)}
+    ${qmcCell('lQuad',r.lQuad)}${qmcCell('rQuad',r.rQuad)}
+    <td>${r.notes||'—'}</td><td>${r.nordic||'—'}</td><td>${r.ffHipAdd||'—'}</td><td>${r.ffHipAbd||'—'}</td>
+  </tr>`).join('')}</tbody>`;
 }
 
 window.addEventListener('load', loadAllData);
