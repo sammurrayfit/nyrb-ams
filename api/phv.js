@@ -50,7 +50,7 @@ async function handleMedical(req, res) {
       if (!byPlayer[player]) byPlayer[player] = [];
       byPlayer[player].push({
         date:       get('date') || null,
-        team:       get('team') || null,
+        team:       normTeam(get('team')),
         lDorsi:     toNumMed(get("l cc dorsiflexion")),
         rDorsi:     toNumMed(get("r cc dorsiflexion")),
         lHam:       toNumMed(get("l hamstring 90/90")),
@@ -80,6 +80,13 @@ function toNumMed(v) {
   if (v === null || v === undefined || v === '') return null;
   const n = parseFloat(String(v).replace(',', '.'));
   return isNaN(n) ? null : n;
+}
+// Sheet has inconsistent casing on age-group team names (u16 vs U16) —
+// normalize so the U always displays capitalized, matching the rest of the site.
+function normTeam(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const s = String(v).trim();
+  return /^u\d+$/i.test(s) ? s.toUpperCase() : s;
 }
 
 function parseD(s) {
