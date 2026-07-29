@@ -53,6 +53,8 @@ select.ctrl:focus{border-color:var(--red)}
 table{width:100%;border-collapse:collapse}
 th{font-family:var(--font);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#fff;padding:7px 10px;text-align:left;white-space:nowrap;background:var(--red)}
 td{padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;white-space:nowrap}
+#page-rank th{font-size:12px}
+#page-rank td{font-size:14px}
 tr:hover td{background:#fff5f5}
 tr:last-child td{border-bottom:none}
 .badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;font-family:var(--font)}
@@ -2354,7 +2356,7 @@ function renderRank(){
   const sf=arr=>(arr||[]).filter(r=>inSeason(r.date,seasonF));
   if(cat==='sprint'){ranked=Object.entries(SPRINT).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a[key]||99)<(b[key]||99)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>(a[key]||99)-(b[key]||99))[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b[key]||99,date:b.date};}).filter(Boolean).filter(r=>r.val<99).sort((a,b)=>a.val-b.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(3)+'s',lower:true}));}
   else if(cat==='t505'){ranked=Object.entries(T505).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a.time||99)<(b.time||99)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>a.time-b.time)[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b.time,date:b.date};}).filter(Boolean).filter(r=>r.val).sort((a,b)=>a.val-b.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(3)+'s',lower:true}));}
-  else if(cat==='broad'){ranked=Object.entries(BROAD).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a.dist||0)>(b.dist||0));if(!a.length)return null;const best=[...a].sort((a,b)=>(b.dist||0)-(a.dist||0))[0];if(!best||!best.dist)return null;return{name:n,age:best.age||arr[0]?.age,pos:PM[n]||'?',val:+best.dist,date:best.date};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' cm'}));}
+  else if(cat==='broad'){ranked=Object.entries(BROAD).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a.dist||0)>(b.dist||0)).filter(r=>fa(r.age));if(!a.length)return null;const best=[...a].sort((a,b)=>(b.dist||0)-(a.dist||0))[0];if(!best||!best.dist)return null;return{name:n,age:best.age||arr[0]?.age,pos:PM[n]||'?',val:+best.dist,date:best.date};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' cm'}));}
   else if(cat==='cmj'){ranked=Object.entries(CMJ).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>(a[key]||0)>(b[key]||0)).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>b[key]-a[key])[0];return{name:n,age:b.age,pos:PM[n]||'?',val:b[key]||0,date:b.date};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:key==='rsi'?r.val.toFixed(3):r.val.toFixed(1)+(key==='height'?' cm':' W/kg')}));}
   else if(cat==='nb'){
     if(sub==='bilateral'){ranked=Object.entries(NB).map(([n,arr])=>{const a=bestPerDate(sf(arr),(a,b)=>((a.lMax||0)+(a.rMax||0))>((b.lMax||0)+(b.rMax||0))).filter(r=>fa(r.age));if(!a.length)return null;const b=[...a].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0];const v=b?+((b.lMax||0)+(b.rMax||0)).toFixed(1)/2:0;return{name:n,age:b?.age,pos:PM[n]||'?',val:v,date:b?.date};}).filter(Boolean).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).map((r,i)=>({...r,rank:i+1,str:r.val.toFixed(1)+' N'}));}
