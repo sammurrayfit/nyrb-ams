@@ -1,7 +1,11 @@
-// /api/phv — PHV sheet
+// /api/phv — PHV sheet (?type=medical also serves the Quarterly Medical
+// Checks sheet from this same function — kept together to stay under the
+// Vercel Hobby plan's 12-Serverless-Function limit rather than adding a
+// 13th file).
 const { fetchSheet } = require('./_sheet');
 module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.query.type === 'medical') return handleMedical(req, res);
   try {
     const rows = await fetchSheet('PHV');
     const byPlayer = {};
@@ -33,6 +37,51 @@ module.exports = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// /api/medical — Quarterly Medical Checks tab
+async function handleMedical(req, res) {
+  try {
+    const rows = await fetchSheet('Quarterly Medical Checks');
+    const byPlayer = {};
+    rows.forEach(row => {
+      const get = (key) => { const k = Object.keys(row).find(k => k.toLowerCase() === key.toLowerCase()); return k ? row[k] : undefined; };
+      const player = get('name');
+      if (!player) return;
+      if (!byPlayer[player]) byPlayer[player] = [];
+      byPlayer[player].push({
+        date:       get('date') || null,
+        team:       get('team') || null,
+        lDorsi:     toNumMed(get("l cc dorsiflexion")),
+        rDorsi:     toNumMed(get("r cc dorsiflexion")),
+        lHam:       toNumMed(get("l hamstring 90/90")),
+        rHam:       toNumMed(get("r hamstring 90/90")),
+        lGroin:     toNumMed(get("l groin rom")),
+        rGroin:     toNumMed(get("r groin rom")),
+        lIR:        toNumMed(get("l ir rom")),
+        rIR:        toNumMed(get("r ir rom")),
+        lQuad:      toNumMed(get("l quad ely's")),
+        rQuad:      toNumMed(get("r quad ely's")),
+        notes:      get('addl notes') || null,
+        nordic:     get('nordic findings') || null,
+        ffHipAdd:   get('ff hip add findings') || null,
+        ffHipAbd:   get('ff hip abd findings') || null,
+      });
+    });
+    Object.keys(byPlayer).forEach(p => {
+      byPlayer[p].sort((a, b) => parseD(a.date) - parseD(b.date));
+    });
+    res.status(200).json(byPlayer);
+  } catch (err) {
+    console.error('[Medical] error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+}
+function toNumMed(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = parseFloat(String(v).replace(',', '.'));
+  return isNaN(n) ? null : n;
+}
+
 function parseD(s) {
   if (!s) return 0;
   if (typeof s === 'number') return new Date((s - 25569) * 86400000);
