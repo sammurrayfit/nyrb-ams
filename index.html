@@ -1441,17 +1441,17 @@ function renderPlayerCompare(){
     METRICS.forEach(k=>{const v=sessions.map(s=>s[k]).filter(x=>x!=null&&!isNaN(x));avgs[k]=v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):null;});
     return{player,color:PCOLORS[pi%PCOLORS.length],avgs,count:sessions.length};
   });
-  const labels=playerData.map(d=>d.player);
   METRICS.forEach(k=>{
     const c=document.getElementById('c-pc-'+k);if(!c)return;
     if(CH['c-pc-'+k])CH['c-pc-'+k].destroy();
+    const sorted=[...playerData].sort((a,b)=>(b.avgs[k]??-Infinity)-(a.avgs[k]??-Infinity));
     const opts=bOpt();
     opts.plugins.datalabels={anchor:'end',align:'top',color:'#222',font:{size:9,weight:'700'},clip:false,
       formatter:v=>v==null?'':+(v%1===0?v.toFixed(0):v.toFixed(1))};
     CH['c-pc-'+k]=new Chart(c,{type:'bar',
-      data:{labels,datasets:[{data:playerData.map(d=>d.avgs[k]),
-        backgroundColor:playerData.map(d=>d.color+'99'),
-        borderColor:playerData.map(d=>d.color),borderWidth:2,borderRadius:3}]},
+      data:{labels:sorted.map(d=>d.player),datasets:[{data:sorted.map(d=>d.avgs[k]),
+        backgroundColor:sorted.map(d=>d.color+'99'),
+        borderColor:sorted.map(d=>d.color),borderWidth:2,borderRadius:3}]},
       options:opts,plugins:[ChartDataLabels]});
   });
   const filterNote=[selDates.length?`${selDates.length} date${selDates.length>1?'s':''}`:null,mdF!=='all'?mdF:null].filter(Boolean).join(', ')||'all sessions';
@@ -1713,11 +1713,11 @@ function renderPCStudio(){
 }
 
 function pcsRenderBar(c,playerData,xMeta){
-  const labels=playerData.map(d=>d.player);
-  const vals=playerData.map(d=>{const v=d.xVals.map(x=>x.v).filter(x=>x!=null&&!isNaN(x));return v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2):null;});
+  const withVals=playerData.map(d=>{const v=d.xVals.map(x=>x.v).filter(x=>x!=null&&!isNaN(x));return{...d,val:v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2):null};});
+  const sorted=[...withVals].sort((a,b)=>(b.val??-Infinity)-(a.val??-Infinity));
   const opts=bOpt();opts.scales.y.beginAtZero=true;
   opts.plugins.datalabels={anchor:'end',align:'top',color:'#222',font:{size:9,weight:'700'},clip:false,formatter:v=>v==null?'':+(v%1===0?v.toFixed(0):v.toFixed(2))};
-  CH['c-pcs']=new Chart(c,{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:playerData.map(d=>d.color+'88'),borderColor:playerData.map(d=>d.color),borderWidth:2,borderRadius:4,maxBarThickness:80}]},options:opts,plugins:[ChartDataLabels]});
+  CH['c-pcs']=new Chart(c,{type:'bar',data:{labels:sorted.map(d=>d.player),datasets:[{data:sorted.map(d=>d.val),backgroundColor:sorted.map(d=>d.color+'88'),borderColor:sorted.map(d=>d.color),borderWidth:2,borderRadius:4,maxBarThickness:80}]},options:opts,plugins:[ChartDataLabels]});
 }
 
 function pcsRenderDensity(c,playerData,xMeta){
