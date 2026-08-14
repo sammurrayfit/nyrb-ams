@@ -316,13 +316,6 @@ tr:last-child td{border-bottom:none}
           <option value="studio">📊 Chart Studio</option>
         </select>
       </div>
-      <div>
-        <div class="cl" style="margin-bottom:4px">Position</div>
-        <select class="ctrl" id="pc-pos" onchange="initPlayerCompare()" style="min-width:110px">
-          <option value="all">All</option>
-          <option value="CB">CB</option><option value="FW">FW</option><option value="FB">FB</option><option value="GK">GK</option><option value="MF">MF</option>
-        </select>
-      </div>
       <!-- GPS filters -->
       <div id="pc-gps-filters" style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">
         <div>
@@ -1398,15 +1391,11 @@ function pcDtypeChange(){
   else if(dt==='testing')renderPCTesting();
   else if(dt==='studio')renderPCStudio();
 }
-function pcPosFilter(list){
-  const pos=document.getElementById('pc-pos')?.value||'all';
-  return pos==='all'?list:list.filter(p=>(PM[p]||'')===pos);
-}
 function initPlayerCompare(){
   const pSel=document.getElementById('pc-players');
   const prevP=[...pSel.selectedOptions].map(o=>o.value);
   pSel.innerHTML='';
-  pcPosFilter([...PLAYERS].sort((a,b)=>a.localeCompare(b))).forEach(p=>{
+  [...PLAYERS].sort((a,b)=>a.localeCompare(b)).forEach(p=>{
     const o=document.createElement('option');o.value=p;o.textContent=p;
     if(prevP.includes(p))o.selected=true;pSel.appendChild(o);
   });
@@ -1422,14 +1411,14 @@ function initPlayerCompare(){
   const pvSel=document.getElementById('pcv-players');
   const prevPV=[...pvSel.selectedOptions].map(o=>o.value);
   pvSel.innerHTML='';
-  pcPosFilter([...new Set([...Object.keys(CMJ),...Object.keys(NB),...Object.keys(VALD)])].sort((a,b)=>a.localeCompare(b))).forEach(p=>{
+  [...new Set([...Object.keys(CMJ),...Object.keys(NB),...Object.keys(VALD)])].sort((a,b)=>a.localeCompare(b)).forEach(p=>{
     const o=document.createElement('option');o.value=p;o.textContent=p;
     if(prevPV.includes(p))o.selected=true;pvSel.appendChild(o);
   });
   const ptSel=document.getElementById('pct-players');
   const prevPT=[...ptSel.selectedOptions].map(o=>o.value);
   ptSel.innerHTML='';
-  pcPosFilter([...new Set([...Object.keys(SPRINT),...Object.keys(T505),...Object.keys(BROAD),...Object.keys(MAS_DATA),...Object.keys(RPM)])].sort((a,b)=>a.localeCompare(b))).forEach(p=>{
+  [...new Set([...Object.keys(SPRINT),...Object.keys(T505),...Object.keys(BROAD),...Object.keys(MAS_DATA),...Object.keys(RPM)])].sort((a,b)=>a.localeCompare(b)).forEach(p=>{
     const o=document.createElement('option');o.value=p;o.textContent=p;
     if(prevPT.includes(p))o.selected=true;ptSel.appendChild(o);
   });
@@ -1644,7 +1633,7 @@ function initPCStudio(){
   const pSel=document.getElementById('pcs-players');
   const prev=[...pSel.selectedOptions].map(o=>o.value);
   pSel.innerHTML='';
-  pcPosFilter(pcsAllPlayers(ageF)).forEach(p=>{
+  pcsAllPlayers(ageF).forEach(p=>{
     const o=document.createElement('option');o.value=p;
     o.textContent=`${p}${PM[p]?' ('+PM[p]+')':pAge(p)?' ('+pAge(p)+')':''}`;
     if(prev.includes(p))o.selected=true;
