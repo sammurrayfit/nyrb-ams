@@ -316,6 +316,13 @@ tr:last-child td{border-bottom:none}
           <option value="studio">📊 Chart Studio</option>
         </select>
       </div>
+      <div>
+        <div class="cl" style="margin-bottom:4px">Position</div>
+        <select class="ctrl" id="pc-pos" onchange="initPlayerCompare()" style="min-width:110px">
+          <option value="all">All</option>
+          <option value="CB">CB</option><option value="FW">FW</option><option value="FB">FB</option><option value="GK">GK</option><option value="MF">MF</option>
+        </select>
+      </div>
       <!-- GPS filters -->
       <div id="pc-gps-filters" style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">
         <div>
@@ -1223,10 +1230,14 @@ function renderTeamWeek(){
     if(ageF==='all'){
       // "All Ages" path uses server-computed TEAM_WEEKLY — no client-side
       // date math needed, so this path was always correct.
-      vals=wkeys.map(wk=>TEAM_WEEKLY[wk]?.[k]?.[aggF]??null);
+      // maxspd ignores the sum/avg toggle: summing (or day-averaging then
+      // summing) max speeds isn't meaningful, so it always shows the true
+      // weekly mean across every session ("mean" field).
+      vals=wkeys.map(wk=>TEAM_WEEKLY[wk]?.[k]?.[k==='maxspd'?'mean':aggF]??null);
     } else {
       // Sum = grand total of every player's every session value in the week.
       // Avg = each day's team average within the week, summed across days.
+      // maxspd always uses a true weekly mean instead (see note above).
       vals=wkeys.map(wk=>{
         const wkYear=+wk.slice(0,4);
         const wkNum=+wk.slice(6);
@@ -1243,6 +1254,7 @@ function renderTeamWeek(){
         });
         const days=Object.values(dayData);
         if(!days.length)return null;
+        if(k==='maxspd')return avg(days.flat());
         if(aggF==='sum')return+days.reduce((a,arr)=>a+arr.reduce((x,y)=>x+y,0),0).toFixed(1);
         return+days.reduce((a,arr)=>a+avg(arr),0).toFixed(1);
       });
@@ -1281,7 +1293,14 @@ function renderPlayerWeek(){
   let wkeys=Object.keys(weekly).sort();
   if(nVal!=='all')wkeys=wkeys.slice(-+nVal);
   const labels=wkeys.map(k=>k.slice(5));
-  METRICS.forEach(k=>{mkBar('c-pw-'+k,labels,wkeys.map(wk=>weekly[wk]?.[k]?+(weekly[wk][k].reduce((a,b)=>a+b,0)).toFixed(1):null),MC[k]?.c||'#cc0000',MC[k]?.bg);});
+  // maxspd is averaged across the week's sessions instead of summed —
+  // summing max speeds isn't meaningful (see renderTeamWeek for the same rule).
+  METRICS.forEach(k=>{mkBar('c-pw-'+k,labels,wkeys.map(wk=>{
+    const arr=weekly[wk]?.[k];
+    if(!arr)return null;
+    if(k==='maxspd')return avg(arr);
+    return+arr.reduce((a,b)=>a+b,0).toFixed(1);
+  }),MC[k]?.c||'#cc0000',MC[k]?.bg);});
 }
 
 // ── ACUTE:CHRONIC (EWMA, 7-day acute : 28-day chronic, last 28 days, per player) ──
@@ -1379,11 +1398,15 @@ function pcDtypeChange(){
   else if(dt==='testing')renderPCTesting();
   else if(dt==='studio')renderPCStudio();
 }
+function pcPosFilter(list){
+  const pos=document.getElementById('pc-pos')?.value||'all';
+  return pos==='all'?list:list.filter(p=>(PM[p]||'')===pos);
+}
 function initPlayerCompare(){
   const pSel=document.getElementById('pc-players');
   const prevP=[...pSel.selectedOptions].map(o=>o.value);
   pSel.innerHTML='';
-  [...PLAYERS].sort((a,b)=>a.localeCompare(b)).forEach(p=>{
+  pcPosFilter([...PLAYERS].sort((a,b)=>a.localeCompare(b))).forEach(p=>{
     const o=document.createElement('option');o.value=p;o.textContent=p;
     if(prevP.includes(p))o.selected=true;pSel.appendChild(o);
   });
@@ -1399,14 +1422,14 @@ function initPlayerCompare(){
   const pvSel=document.getElementById('pcv-players');
   const prevPV=[...pvSel.selectedOptions].map(o=>o.value);
   pvSel.innerHTML='';
-  [...new Set([...Object.keys(CMJ),...Object.keys(NB),...Object.keys(VALD)])].sort((a,b)=>a.localeCompare(b)).forEach(p=>{
+  pcPosFilter([...new Set([...Object.keys(CMJ),...Object.keys(NB),...Object.keys(VALD)])].sort((a,b)=>a.localeCompare(b))).forEach(p=>{
     const o=document.createElement('option');o.value=p;o.textContent=p;
     if(prevPV.includes(p))o.selected=true;pvSel.appendChild(o);
   });
   const ptSel=document.getElementById('pct-players');
   const prevPT=[...ptSel.selectedOptions].map(o=>o.value);
   ptSel.innerHTML='';
-  [...new Set([...Object.keys(SPRINT),...Object.keys(T505),...Object.keys(BROAD),...Object.keys(MAS_DATA),...Object.keys(RPM)])].sort((a,b)=>a.localeCompare(b)).forEach(p=>{
+  pcPosFilter([...new Set([...Object.keys(SPRINT),...Object.keys(T505),...Object.keys(BROAD),...Object.keys(MAS_DATA),...Object.keys(RPM)])].sort((a,b)=>a.localeCompare(b))).forEach(p=>{
     const o=document.createElement('option');o.value=p;o.textContent=p;
     if(prevPT.includes(p))o.selected=true;ptSel.appendChild(o);
   });
@@ -1461,31 +1484,33 @@ function renderPCVald(){
   const parts=testKey.split('-');const cat=parts[0];const sub=parts[1];const fld=parts[2];
   const dn=s=>String(s||'').trim().toLowerCase();
   function getVal(player){
-    if(cat==='cmj'){const arr=CMJ[player]||[];if(!arr.length)return null;const rec=agg==='best'?[...arr].sort((a,b)=>(b[sub]||0)-(a[sub]||0))[0]:arr[arr.length-1];return rec?rec[sub]:null;}
+    if(cat==='cmj'){const arr=CMJ[player]||[];if(!arr.length)return null;const rec=agg==='best'?[...arr].sort((a,b)=>(b[sub]||0)-(a[sub]||0))[0]:arr[arr.length-1];return rec?{val:rec[sub],date:rec.date}:null;}
     if(cat==='nb'){
       const arr=NB[player]||[];if(!arr.length)return null;
-      if(sub==='bilateral'){const rec=agg==='best'?[...arr].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0]:arr[arr.length-1];return rec?+(((rec.lMax||0)+(rec.rMax||0))/2).toFixed(1):null;}
-      const rec=agg==='best'?[...arr].sort((a,b)=>(b[sub]||0)-(a[sub]||0))[0]:arr[arr.length-1];return rec?rec[sub]:null;
+      if(sub==='bilateral'){const rec=agg==='best'?[...arr].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0]:arr[arr.length-1];return rec?{val:+(((rec.lMax||0)+(rec.rMax||0))/2).toFixed(1),date:rec.date}:null;}
+      const rec=agg==='best'?[...arr].sort((a,b)=>(b[sub]||0)-(a[sub]||0))[0]:arr[arr.length-1];return rec?{val:rec[sub],date:rec.date}:null;
     }
     if(cat==='hip'){
       const isAbd=sub==='abd';const dir=isAbd?'pull':'squeeze';
       const arr=(VALD[player]||[]).filter(r=>dn(r.direction)===dir&&(r.lMax>0||r.rMax>0));if(!arr.length)return null;
-      if(fld==='bilateral'){const rec=agg==='best'?[...arr].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0]:arr[arr.length-1];return rec?+(((rec.lMax||0)+(rec.rMax||0))/2).toFixed(1):null;}
-      const rec=agg==='best'?[...arr].sort((a,b)=>(b[fld]||0)-(a[fld]||0))[0]:arr[arr.length-1];return rec?rec[fld]:null;
+      if(fld==='bilateral'){const rec=agg==='best'?[...arr].sort((a,b)=>((b.lMax||0)+(b.rMax||0))-((a.lMax||0)+(a.rMax||0)))[0]:arr[arr.length-1];return rec?{val:+(((rec.lMax||0)+(rec.rMax||0))/2).toFixed(1),date:rec.date}:null;}
+      const rec=agg==='best'?[...arr].sort((a,b)=>(b[fld]||0)-(a[fld]||0))[0]:arr[arr.length-1];return rec?{val:rec[fld],date:rec.date}:null;
     }
     return null;
   }
-  const playerData=selected.map((p,i)=>({player:p,color:PCOLORS[i%PCOLORS.length],val:getVal(p)}));
+  const playerData=selected.map((p,i)=>{const r=getVal(p);return{player:p,color:PCOLORS[i%PCOLORS.length],val:r?r.val:null,date:r?r.date:null};});
   const title=document.getElementById('pcv-test').selectedOptions[0].text+' — '+agg;
   document.getElementById('pcv-title').textContent=title;
   const sorted=[...playerData].filter(d=>d.val!=null).sort((a,b)=>(b.val||0)-(a.val||0));
   const c=document.getElementById('c-pcv');if(!c)return;if(CH['c-pcv'])CH['c-pcv'].destroy();
   const opts=bOpt();opts.layout={padding:{top:18}};
   opts.plugins.datalabels={anchor:'end',align:'top',color:'#222',font:{size:9,weight:'700'},clip:false,formatter:v=>v==null?'':typeof v==='number'?+(v%1===0?v.toFixed(0):v.toFixed(3)):v};
-  CH['c-pcv']=new Chart(c,{type:'bar',data:{labels:sorted.map(d=>d.player),datasets:[{data:sorted.map(d=>d.val),backgroundColor:sorted.map(d=>d.color+'99'),borderColor:sorted.map(d=>d.color),borderWidth:2,borderRadius:3}]},options:opts,plugins:[ChartDataLabels]});
+  // When comparing "Latest", each player's test date can differ — show it as a
+  // second line under the player name instead of leaving it implicit.
+  CH['c-pcv']=new Chart(c,{type:'bar',data:{labels:sorted.map(d=>agg==='latest'&&d.date?[d.player,d.date]:d.player),datasets:[{data:sorted.map(d=>d.val),backgroundColor:sorted.map(d=>d.color+'99'),borderColor:sorted.map(d=>d.color),borderWidth:2,borderRadius:3}]},options:opts,plugins:[ChartDataLabels]});
   document.getElementById('tbl-pcv').innerHTML=
-    `<thead><tr><th>Rank</th><th>Player</th><th>Pos</th><th>Age</th><th>${title}</th></tr></thead><tbody>`+
-    sorted.map((d,i)=>`<tr><td style="font-family:var(--font);font-weight:800;color:${i<3?'#cc0000':'#999'}">${i+1}</td><td style="font-weight:700;border-left:4px solid ${d.color};padding-left:8px">${d.player}</td><td>${posBadge(PM[d.player]||'?')}</td><td>${ageBadge(pAge(d.player)||'?')}</td><td style="font-family:var(--font);font-size:16px;font-weight:800;color:${d.color}">${typeof d.val==='number'?+(d.val%1===0?d.val.toFixed(0):d.val.toFixed(3)):d.val}</td></tr>`).join('')+'</tbody>';
+    `<thead><tr><th>Rank</th><th>Player</th><th>Pos</th><th>Age</th>${agg==='latest'?'<th>Date</th>':''}<th>${title}</th></tr></thead><tbody>`+
+    sorted.map((d,i)=>`<tr><td style="font-family:var(--font);font-weight:800;color:${i<3?'#cc0000':'#999'}">${i+1}</td><td style="font-weight:700;border-left:4px solid ${d.color};padding-left:8px">${d.player}</td><td>${posBadge(PM[d.player]||'?')}</td><td>${ageBadge(pAge(d.player)||'?')}</td>${agg==='latest'?`<td style="color:#999;font-size:11px">${d.date||'—'}</td>`:''}<td style="font-family:var(--font);font-size:16px;font-weight:800;color:${d.color}">${typeof d.val==='number'?+(d.val%1===0?d.val.toFixed(0):d.val.toFixed(3)):d.val}</td></tr>`).join('')+'</tbody>';
 }
 function renderPCTesting(){
   const selected=[...document.getElementById('pct-players').selectedOptions].map(o=>o.value);
@@ -1619,7 +1644,7 @@ function initPCStudio(){
   const pSel=document.getElementById('pcs-players');
   const prev=[...pSel.selectedOptions].map(o=>o.value);
   pSel.innerHTML='';
-  pcsAllPlayers(ageF).forEach(p=>{
+  pcPosFilter(pcsAllPlayers(ageF)).forEach(p=>{
     const o=document.createElement('option');o.value=p;
     o.textContent=`${p}${PM[p]?' ('+PM[p]+')':pAge(p)?' ('+pAge(p)+')':''}`;
     if(prev.includes(p))o.selected=true;

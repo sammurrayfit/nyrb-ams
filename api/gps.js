@@ -136,7 +136,10 @@ module.exports = async (req, res) => {
       teamWeekly[wk] = {};
       METRIC_KEYS.forEach(k => {
         const { sum, avgSum, n } = weeklyAgg[wk][k];
-        teamWeekly[wk][k] = n ? { sum: +sum.toFixed(1), avg: +avgSum.toFixed(1) } : null;
+        // mean = true grand average across every session that week (sum / n),
+        // as opposed to `avg` which sums each day's average. Used for metrics
+        // like maxspd where summing/day-averaging doesn't make sense.
+        teamWeekly[wk][k] = n ? { sum: +sum.toFixed(1), avg: +avgSum.toFixed(1), mean: +(sum / n).toFixed(1) } : null;
       });
     });
     res.status(200).json({
