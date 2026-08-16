@@ -1431,40 +1431,71 @@ function renderPlayerCompare(){
   const pSel=document.getElementById('pc-players');
   const selected=[...pSel.selectedOptions].map(o=>o.value);
   if(!selected.length)return;
-  const selDates=[...document.getElementById('pc-date').selectedOptions].map(o=>o.value);
+  const selDates=[...document.getElementById('pc-date').selectedOptions].map(o=>o.value).sort((a,b)=>parseDate(a)-parseDate(b));
   const mdF=document.getElementById('pc-md')?.value||'all';
   const mLabels={dist:'Total Distance',dpm:'Dist/Min',hsr:'HSR',vhsr:'VHSR',sprint:'Sprint',expl:'Explosive',maxspd:'Max Speed',acc:'Accels',dec:'Decels'};
+  const groupByDate=selDates.length>1;
+  const avgOf=sessions=>{const avgs={};METRICS.forEach(k=>{const v=sessions.map(s=>s[k]).filter(x=>x!=null&&!isNaN(x));avgs[k]=v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):null;});return avgs;};
   const playerData=selected.map((player,pi)=>{
     let sessions=(GPS[player]||[]).filter(s=>s.dist).sort((a,b)=>parseDate(a.date)-parseDate(b.date));
     if(mdF!=='all')sessions=sessions.filter(s=>String(s.md||'').trim()===mdF);
     if(selDates.length)sessions=sessions.filter(s=>selDates.includes(s.date));
-    const avgs={};
-    METRICS.forEach(k=>{const v=sessions.map(s=>s[k]).filter(x=>x!=null&&!isNaN(x));avgs[k]=v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):null;});
-    return{player,color:PCOLORS[pi%PCOLORS.length],avgs,count:sessions.length};
+    const base={player,color:PCOLORS[pi%PCOLORS.length],avgs:avgOf(sessions),count:sessions.length};
+    if(groupByDate)base.byDate=Object.fromEntries(selDates.map(d=>{const ds=sessions.filter(s=>s.date===d);return[d,{avgs:avgOf(ds),count:ds.length}];}));
+    return base;
   });
   METRICS.forEach(k=>{
     const c=document.getElementById('c-pc-'+k);if(!c)return;
     if(CH['c-pc-'+k])CH['c-pc-'+k].destroy();
-    const sorted=[...playerData].sort((a,b)=>(b.avgs[k]??-Infinity)-(a.avgs[k]??-Infinity));
     const opts=bOpt();
-    opts.plugins.datalabels={anchor:'end',align:'top',color:'#222',font:{size:9,weight:'700'},clip:false,
-      formatter:v=>v==null?'':+(v%1===0?v.toFixed(0):v.toFixed(1))};
-    CH['c-pc-'+k]=new Chart(c,{type:'bar',
-      data:{labels:sorted.map(d=>d.player),datasets:[{data:sorted.map(d=>d.avgs[k]),
-        backgroundColor:sorted.map(d=>d.color+'99'),
-        borderColor:sorted.map(d=>d.color),borderWidth:2,borderRadius:3}]},
-      options:opts,plugins:[ChartDataLabels]});
+    if(groupByDate){
+      const ordered=[...playerData].sort((a,b)=>(b.avgs[k]??-Infinity)-(a.avgs[k]??-Infinity));
+      opts.plugins.legend={display:true,position:'top',labels:{font:{size:9},boxWidth:10,padding:8}};
+      opts.plugins.datalabels={anchor:'end',align:'top',color:'#222',font:{size:8,weight:'700'},clip:false,
+        formatter:v=>v==null?'':+(v%1===0?v.toFixed(0):v.toFixed(1))};
+      CH['c-pc-'+k]=new Chart(c,{type:'bar',
+        data:{labels:ordered.map(d=>d.player),
+          datasets:selDates.map((dt,di)=>({label:dt,
+            data:ordered.map(d=>d.byDate[dt].avgs[k]),
+            backgroundColor:PCOLORS[di%PCOLORS.length]+'99',
+            borderColor:PCOLORS[di%PCOLORS.length],borderWidth:2,borderRadius:3}))},
+        options:opts,plugins:[ChartDataLabels]});
+    }else{
+      const sorted=[...playerData].sort((a,b)=>(b.avgs[k]??-Infinity)-(a.avgs[k]??-Infinity));
+      opts.plugins.datalabels={anchor:'end',align:'top',color:'#222',font:{size:9,weight:'700'},clip:false,
+        formatter:v=>v==null?'':+(v%1===0?v.toFixed(0):v.toFixed(1))};
+      CH['c-pc-'+k]=new Chart(c,{type:'bar',
+        data:{labels:sorted.map(d=>d.player),datasets:[{data:sorted.map(d=>d.avgs[k]),
+          backgroundColor:sorted.map(d=>d.color+'99'),
+          borderColor:sorted.map(d=>d.color),borderWidth:2,borderRadius:3}]},
+        options:opts,plugins:[ChartDataLabels]});
+    }
   });
   const filterNote=[selDates.length?`${selDates.length} date${selDates.length>1?'s':''}`:null,mdF!=='all'?mdF:null].filter(Boolean).join(', ')||'all sessions';
-  document.getElementById('tbl-pc').innerHTML=
-    `<thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>n (${filterNote})</th>${METRICS.map(k=>`<th>${mLabels[k]}</th>`).join('')}</tr></thead><tbody>`+
-    [...playerData].sort((a,b)=>(b.avgs.dist||0)-(a.avgs.dist||0)).map(d=>
-      `<tr><td style="font-weight:700;border-left:4px solid ${d.color};padding-left:8px">${d.player}</td>`+
-      `<td>${posBadge(PM[d.player]||'?')}</td><td>${ageBadge(pAge(d.player)||'?')}</td>`+
-      `<td style="color:#999;font-size:11px">${d.count}</td>`+
-      METRICS.map(k=>`<td style="font-family:var(--font);font-size:14px;font-weight:800;color:${d.avgs[k]!=null?d.color:'#ccc'}">${d.avgs[k]!=null?d.avgs[k]:'—'}</td>`).join('')+
-      `</tr>`
-    ).join('')+'</tbody>';
+  if(groupByDate){
+    document.getElementById('tbl-pc').innerHTML=
+      `<thead><tr><th>Player</th><th>Date</th><th>Pos</th><th>Age</th><th>n</th>${METRICS.map(k=>`<th>${mLabels[k]}</th>`).join('')}</tr></thead><tbody>`+
+      [...playerData].sort((a,b)=>(b.avgs.dist||0)-(a.avgs.dist||0)).flatMap(d=>
+        selDates.map(dt=>{const row=d.byDate[dt];return
+          `<tr><td style="font-weight:700;border-left:4px solid ${d.color};padding-left:8px">${d.player}</td>`+
+          `<td>${dt}</td>`+
+          `<td>${posBadge(PM[d.player]||'?')}</td><td>${ageBadge(pAge(d.player)||'?')}</td>`+
+          `<td style="color:#999;font-size:11px">${row.count}</td>`+
+          METRICS.map(k=>`<td style="font-family:var(--font);font-size:14px;font-weight:800;color:${row.avgs[k]!=null?d.color:'#ccc'}">${row.avgs[k]!=null?row.avgs[k]:'—'}</td>`).join('')+
+          `</tr>`;
+        })
+      ).join('')+'</tbody>';
+  }else{
+    document.getElementById('tbl-pc').innerHTML=
+      `<thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>n (${filterNote})</th>${METRICS.map(k=>`<th>${mLabels[k]}</th>`).join('')}</tr></thead><tbody>`+
+      [...playerData].sort((a,b)=>(b.avgs.dist||0)-(a.avgs.dist||0)).map(d=>
+        `<tr><td style="font-weight:700;border-left:4px solid ${d.color};padding-left:8px">${d.player}</td>`+
+        `<td>${posBadge(PM[d.player]||'?')}</td><td>${ageBadge(pAge(d.player)||'?')}</td>`+
+        `<td style="color:#999;font-size:11px">${d.count}</td>`+
+        METRICS.map(k=>`<td style="font-family:var(--font);font-size:14px;font-weight:800;color:${d.avgs[k]!=null?d.color:'#ccc'}">${d.avgs[k]!=null?d.avgs[k]:'—'}</td>`).join('')+
+        `</tr>`
+      ).join('')+'</tbody>';
+  }
 }
 function renderPCVald(){
   const selected=[...document.getElementById('pcv-players').selectedOptions].map(o=>o.value);
