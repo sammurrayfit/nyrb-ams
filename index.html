@@ -463,6 +463,7 @@ tr:last-child td{border-bottom:none}
           </div>
         </div>
       </div>
+      <button class="export-btn" onclick="exportPDF('page-playercompare')" style="margin-left:auto">⬇ Export PDF</button>
     </div>
     <!-- GPS section -->
     <div id="pc-sect-gps">
@@ -2574,6 +2575,7 @@ async function exportPDF(pageId){
   const page=document.getElementById(pageId);
   if(!page)return;
   const isVald=pageId==='page-vald';
+  const isPC=pageId==='page-playercompare';
   const toHide=[
     document.querySelector('.topbar'),
     document.querySelector('.section-nav'),
@@ -2634,6 +2636,11 @@ async function exportPDF(pageId){
         const matchLabel=mdSel?.options[mdSel.selectedIndex]?.text||'';
         pdf.setFontSize(16);pdf.text('RBNY ACADEMY — MATCH REPORT',pgW/2,14,{align:'center'});
         pdf.setFontSize(10);pdf.text(matchLabel,pgW-margin,9,{align:'right'});
+      }else if(isPC){
+        const dtypeSel=document.getElementById('pc-dtype');
+        const dtypeLabel=dtypeSel?.options[dtypeSel.selectedIndex]?.text||'';
+        pdf.setFontSize(16);pdf.text('RBNY ACADEMY — PLAYER COMPARISON',pgW/2,14,{align:'center'});
+        pdf.setFontSize(10);pdf.text(dtypeLabel,pgW-margin,9,{align:'right'});
       }else{
         const dateEl=document.getElementById('g-date');
         const dt=dateEl?.options[dateEl.selectedIndex]?.text||'';
@@ -2661,7 +2668,7 @@ async function exportPDF(pageId){
       }
     });
 
-    const name=isVald?(document.getElementById('vald-player')?.value||'testing'):'daily-report';
+    const name=isVald?(document.getElementById('vald-player')?.value||'testing'):isPC?'player-compare':'daily-report';
     pdf.save(`RBNY-${name}-${new Date().toISOString().slice(0,10)}.pdf`);
   }catch(e){console.error(e);alert('PDF export failed: '+e.message);}
   finally{toHide.forEach(el=>{el.style.display=el._ph||'';});}
