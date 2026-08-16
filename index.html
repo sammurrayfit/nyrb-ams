@@ -319,11 +319,11 @@ tr:last-child td{border-bottom:none}
       <!-- GPS filters -->
       <div id="pc-gps-filters" style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">
         <div>
-          <div class="cl" style="margin-bottom:4px">Players <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#aaa">(Cmd/Ctrl)</span></div>
+          <div class="cl" style="margin-bottom:4px">Players <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#aaa">(click to toggle)</span></div>
           <select class="ctrl" id="pc-players" multiple size="6" style="min-width:190px;height:auto" onchange="renderPlayerCompare()"></select>
         </div>
         <div>
-          <div class="cl" style="margin-bottom:4px">Date <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#aaa">(Cmd/Ctrl)</span></div>
+          <div class="cl" style="margin-bottom:4px">Date <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#aaa">(click to toggle)</span></div>
           <select class="ctrl" id="pc-date" multiple size="6" style="min-width:150px;height:auto" onchange="renderPlayerCompare()"></select>
         </div>
         <div>
@@ -340,7 +340,7 @@ tr:last-child td{border-bottom:none}
       <!-- VALD filters -->
       <div id="pc-vald-filters" style="display:none;gap:14px;align-items:flex-start;flex-wrap:wrap">
         <div>
-          <div class="cl" style="margin-bottom:4px">Players <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#aaa">(Cmd/Ctrl)</span></div>
+          <div class="cl" style="margin-bottom:4px">Players <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#aaa">(click to toggle)</span></div>
           <select class="ctrl" id="pcv-players" multiple size="6" style="min-width:190px;height:auto" onchange="renderPCVald()"></select>
         </div>
         <div>
@@ -379,7 +379,7 @@ tr:last-child td{border-bottom:none}
       <!-- Testing filters -->
       <div id="pc-testing-filters" style="display:none;gap:14px;align-items:flex-start;flex-wrap:wrap">
         <div>
-          <div class="cl" style="margin-bottom:4px">Players <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#aaa">(Cmd/Ctrl)</span></div>
+          <div class="cl" style="margin-bottom:4px">Players <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#aaa">(click to toggle)</span></div>
           <select class="ctrl" id="pct-players" multiple size="6" style="min-width:190px;height:auto" onchange="renderPCTesting()"></select>
         </div>
         <div>
@@ -403,7 +403,7 @@ tr:last-child td{border-bottom:none}
       <!-- Studio filters: single flex-wrap container; the date-row div is width:100% so it always starts a new line -->
       <div id="pc-studio-filters" style="display:none;gap:12px;align-items:flex-start;flex-wrap:wrap">
         <div>
-          <div class="cl" style="margin-bottom:4px">Players <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#aaa">(Cmd/Ctrl)</span></div>
+          <div class="cl" style="margin-bottom:4px">Players <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:#aaa">(click to toggle)</span></div>
           <select class="ctrl" id="pcs-players" multiple size="5" style="min-width:190px;height:auto" onchange="renderPCStudio()"></select>
         </div>
         <div>
@@ -2949,6 +2949,14 @@ function renderMedical(){
   </tr>`).join('')}</tbody>`;
 }
 
+document.querySelectorAll('select[multiple].ctrl').forEach(sel=>{
+  sel.addEventListener('mousedown',e=>{
+    if(e.target.tagName!=='OPTION')return;
+    e.preventDefault();
+    e.target.selected=!e.target.selected;
+    sel.dispatchEvent(new Event('change'));
+  });
+});
 window.addEventListener('load', loadAllData);
 </script>
 </body>
