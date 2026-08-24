@@ -2660,7 +2660,7 @@ async function exportPDF(pageId){
         const drSel=document.getElementById('vald-date-range');
         let dr=drSel?.options[drSel.selectedIndex]?.text||'';
         if(pg>1)dr+=`  ·  p${pg}`;
-        const boxY=3,boxH=headerH-6,nameW=72,drW=52,gap=4;
+        const boxY=3,boxH=headerH-6,nameW=48,drW=40,gap=4;
         const barX=margin+nameW+gap,barW=usableW-nameW-drW-gap*2;
         // Name box
         pdf.setDrawColor(221,221,221);pdf.setFillColor(255,255,255);
@@ -2671,7 +2671,7 @@ async function exportPDF(pageId){
         pdf.text(pn,margin+4,boxY+16);
         // Red title bar
         pdf.setFillColor(204,0,0);pdf.roundedRect(barX,boxY,barW,boxH,1.2,1.2,'F');
-        pdf.setTextColor(255,255,255);pdf.setFontSize(17);
+        pdf.setTextColor(255,255,255);pdf.setFontSize(19);
         pdf.text('RBNY ACADEMY — TESTING',barX+barW/2,boxY+boxH/2+3,{align:'center'});
         // Date range box
         const drX=barX+barW+gap;
