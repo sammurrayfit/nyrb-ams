@@ -2653,6 +2653,16 @@ async function exportPDF(pageId){
       for(let i=0;i<nPages;i++){const s=Math.floor(i*ppx);slices.push({s,e:Math.min(s+Math.ceil(ppx),canvas.height)});}
     }
 
+    const fitSize=(txt,maxW,max,min)=>{
+      let sz=max;pdf.setFontSize(sz);
+      while(sz>min&&pdf.getTextWidth(txt)>maxW){sz-=0.5;pdf.setFontSize(sz);}
+      if(pdf.getTextWidth(txt)>maxW){
+        let t=txt;
+        while(t.length>1&&pdf.getTextWidth(t+'…')>maxW)t=t.slice(0,-1);
+        return{size:sz,text:t+'…'};
+      }
+      return{size:sz,text:txt};
+    };
     const addHeader=pg=>{
       if(isVald){
         pdf.setFillColor(240,240,240);pdf.rect(0,0,pgW,headerH,'F');
@@ -2662,13 +2672,15 @@ async function exportPDF(pageId){
         if(pg>1)dr+=`  ·  p${pg}`;
         const boxY=3,boxH=headerH-6,nameW=48,drW=40,gap=4;
         const barX=margin+nameW+gap,barW=usableW-nameW-drW-gap*2;
+        pdf.setFont('helvetica','bold');
         // Name box
         pdf.setDrawColor(221,221,221);pdf.setFillColor(255,255,255);
         pdf.roundedRect(margin,boxY,nameW,boxH,1.2,1.2,'FD');
-        pdf.setFont('helvetica','bold');pdf.setTextColor(85,85,85);pdf.setFontSize(7);
-        pdf.text('NAME',margin+4,boxY+7);
-        pdf.setTextColor(26,26,26);pdf.setFontSize(13);
-        pdf.text(pn,margin+4,boxY+16);
+        pdf.setTextColor(85,85,85);pdf.setFontSize(7);
+        pdf.text('NAME',margin+4,boxY+6);
+        pdf.setTextColor(26,26,26);
+        const nf=fitSize(pn,nameW-8,19,9);
+        pdf.setFontSize(nf.size);pdf.text(nf.text,margin+4,boxY+19);
         // Red title bar
         pdf.setFillColor(204,0,0);pdf.roundedRect(barX,boxY,barW,boxH,1.2,1.2,'F');
         pdf.setTextColor(255,255,255);pdf.setFontSize(19);
@@ -2677,10 +2689,11 @@ async function exportPDF(pageId){
         const drX=barX+barW+gap;
         pdf.setDrawColor(221,221,221);pdf.setFillColor(255,255,255);
         pdf.roundedRect(drX,boxY,drW,boxH,1.2,1.2,'FD');
-        pdf.setFont('helvetica','bold');pdf.setTextColor(85,85,85);pdf.setFontSize(7);
-        pdf.text('DATE RANGE',drX+4,boxY+7);
-        pdf.setTextColor(26,26,26);pdf.setFontSize(12);
-        pdf.text(dr,drX+4,boxY+16);
+        pdf.setTextColor(85,85,85);pdf.setFontSize(7);
+        pdf.text('DATE RANGE',drX+4,boxY+6);
+        pdf.setTextColor(26,26,26);
+        const df=fitSize(dr,drW-8,17,9);
+        pdf.setFontSize(df.size);pdf.text(df.text,drX+4,boxY+19);
         return;
       }
       pdf.setFillColor(204,0,0);pdf.rect(0,0,pgW,headerH,'F');
