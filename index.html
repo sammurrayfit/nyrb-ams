@@ -2652,6 +2652,18 @@ async function exportPDF(pageId){
       const ppx=canvas.height/nPages;
       for(let i=0;i<nPages;i++){const s=Math.floor(i*ppx);slices.push({s,e:Math.min(s+Math.ceil(ppx),canvas.height)});}
     }
+    // Any slice taller than one page's usable height gets split further, so
+    // images always fill the full page width instead of shrinking to fit height.
+    const usableHpx=usableH*CS/mmPerPx;
+    slices=slices.flatMap(({s,e})=>{
+      const h=e-s;
+      if(h<=usableHpx)return[{s,e}];
+      const n=Math.ceil(h/usableHpx);
+      const step=h/n;
+      const out=[];
+      for(let i=0;i<n;i++)out.push({s:Math.floor(s+i*step),e:Math.min(Math.ceil(s+(i+1)*step),e)});
+      return out;
+    });
 
     const fitSize=(txt,maxW,max,min)=>{
       let sz=max;pdf.setFontSize(sz);
