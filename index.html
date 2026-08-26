@@ -1045,7 +1045,7 @@ function initDaily(){
   // GK excluded from the blended average unless explicitly selected via the position filter.
   let kpiData=pos==='all'?data.filter(d=>d.pos!=='GK'):data;
   // Averages only reflect players who trained fully — partial/modified participation and non-training sessions are excluded.
-  kpiData=kpiData.filter(d=>String(d.participation||'').trim().toLowerCase()==='full'&&String(d.session||'').trim().toLowerCase()==='training');
+  kpiData=kpiData.filter(d=>String(d.participation||'').trim().toLowerCase()==='full'&&String(d.session||'').trim().toLowerCase().startsWith('train'));
   document.getElementById('daily-kpis').innerHTML=kpis.map(({k,l})=>`<div><div class="kv">${avg(kpiData.map(d=>d[k]))}</div><div class="kl">${l}</div></div>`).join('');
   METRICS.forEach(key=>{const sorted=[...data].filter(d=>d[key]!=null).sort((a,b)=>b[key]-a[key]);mkBarM('c-'+key,sorted.map(d=>d.player),sorted.map(d=>d[key]),sorted.map(d=>PC[d.pos]||'#888'),sorted.map(d=>(PC[d.pos]||'#888')+'55'));});
 }
