@@ -720,8 +720,8 @@ tr:last-child td{border-bottom:none}
     <div class="ctrl-row" style="flex-wrap:wrap;gap:8px">
       <span class="cl">Player:</span>
       <select class="ctrl" id="phv-player" onchange="renderPHV()"><option value="all">All Players</option></select>
-      <span class="cl">Age Group:</span>
-      <select class="ctrl" id="phv-team" onchange="renderPHV()"><option value="all">All Groups</option></select>
+      <span class="cl">Birth Year:</span>
+      <select class="ctrl" id="phv-birthyear" onchange="renderPHV()"><option value="all">All Years</option></select>
       <span class="cl">Session:</span>
       <select class="ctrl" id="phv-session" onchange="renderPHV()"><option value="latest">Latest Only</option><option value="all">All Sessions</option></select>
     </div>
@@ -2765,6 +2765,7 @@ async function exportPDF(pageId){
 function phvStage(v){if(v===null||v===undefined)return null;if(v<-1)return'pre';if(v<=1)return'circum';return'post';}
 function phvColor(v){const s=phvStage(v);return s==='pre'?'#0055cc':s==='circum'?'#ff9500':'#007a30';}
 function phvLabel(v){const s=phvStage(v);return s==='pre'?'Pre-PHV':s==='circum'?'Circum-PHV':'Post-PHV';}
+function birthYear(dob){if(!dob)return null;const d=parseDate(dob);return(!d||isNaN(d))?null:d.getFullYear();}
 
 // Height Change (in): <0.3 (incl. negatives) grey, 0.3–0.69 black, 0.7–1.0 orange, >1.0 red
 function heightChgColor(v){
@@ -2808,7 +2809,7 @@ function phvSort(key){
 
 function phvClearFilters(){
   document.getElementById('phv-player').value='all';
-  document.getElementById('phv-team').value='all';
+  document.getElementById('phv-birthyear').value='all';
   document.getElementById('phv-session').value='latest';
   document.getElementById('phv-bio-min').value='';
   document.getElementById('phv-bio-max').value='';
@@ -2819,23 +2820,23 @@ function phvClearFilters(){
 
 function initPHV(){
   const players=new Set();
-  const teams=new Set();
+  const birthYears=new Set();
   Object.entries(PHV_DATA).forEach(([name,arr])=>{
     players.add(name);
-    arr.forEach(r=>{if(r.team)teams.add(r.team);});
+    arr.forEach(r=>{const by=birthYear(r.dob);if(by)birthYears.add(by);});
   });
   const pSel=document.getElementById('phv-player');
   pSel.innerHTML='<option value="all">All Players</option>';
   [...players].sort().forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;pSel.appendChild(o);});
-  const tSel=document.getElementById('phv-team');
-  tSel.innerHTML='<option value="all">All Groups</option>';
-  [...teams].sort().forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;tSel.appendChild(o);});
+  const bySel=document.getElementById('phv-birthyear');
+  bySel.innerHTML='<option value="all">All Years</option>';
+  [...birthYears].sort((a,b)=>a-b).forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;bySel.appendChild(o);});
   renderPHV();
 }
 
 function renderPHV(){
   const playerF=document.getElementById('phv-player')?.value||'all';
-  const teamF=document.getElementById('phv-team')?.value||'all';
+  const byF=document.getElementById('phv-birthyear')?.value||'all';
   const sessF=document.getElementById('phv-session')?.value||'latest';
   const bioMin=parseFloat(document.getElementById('phv-bio-min')?.value);
   const bioMax=parseFloat(document.getElementById('phv-bio-max')?.value);
@@ -2849,12 +2850,13 @@ function renderPHV(){
     if(playerF!=='all'&&name!==playerF)return;
     const entries=sessF==='latest'?[arr[arr.length-1]]:arr;
     entries.forEach(r=>{
-      if(teamF!=='all'&&r.team!==teamF)return;
+      const by=birthYear(r.dob);
+      if(byF!=='all'&&String(by)!==byF)return;
       if(!isNaN(bioMin)&&(r.bioAge===null||r.bioAge<bioMin))return;
       if(!isNaN(bioMax)&&(r.bioAge===null||r.bioAge>bioMax))return;
       if(!isNaN(grwMin)&&(r.growthPct===null||r.growthPct<grwMin))return;
       if(!isNaN(grwMax)&&(r.growthPct===null||r.growthPct>grwMax))return;
-      rows.push({name,...r});
+      rows.push({name,...r,birthYear:by});
     });
   });
 
@@ -2882,7 +2884,7 @@ function renderPHV(){
   ].map(({v,l})=>`<div class="panel" style="padding:10px 12px"><div class="kv">${v??'—'}</div><div class="kl">${l}</div></div>`).join('');
 
   // Show/hide height chart — only when a specific player or age group is selected
-  const showHeightChart=playerF!=='all'||teamF!=='all';
+  const showHeightChart=playerF!=='all'||byF!=='all';
   document.getElementById('phv-height-panel').style.display=showHeightChart?'':'none';
 
   // Chart 1: PHV offset by player
@@ -2934,7 +2936,7 @@ function renderPHV(){
   const arrow=k=>PHV_SORT_KEY===k?(PHV_SORT_DIR===1?' ▲':' ▼'):'';
   const th=(key,label)=>`<th onclick="phvSort('${key}')" style="cursor:pointer;user-select:none">${label}${arrow(key)}</th>`;
   tbl.innerHTML=`<thead><tr>
-    ${th('date','Date')}${th('team','Team')}${th('name','Name')}${th('dob','DOB')}
+    ${th('date','Date')}${th('birthYear','Birth Year')}${th('name','Name')}${th('dob','DOB')}
     ${th('ageAtTest','Age at Test')}${th('bioAge','Biological Age')}
     ${th('weight','Weight (lb)')}${th('weightChg','Weight Change')}
     ${th('height','Standing Height')}${th('heightChg','Height Change')}
@@ -2945,7 +2947,7 @@ function renderPHV(){
     const gc=growthColor(r.growthPct);
     return`<tr>
       <td>${r.date||'—'}</td>
-      <td>${r.team||'—'}</td>
+      <td>${r.birthYear||'—'}</td>
       <td style="font-weight:600">${r.name}</td>
       <td${dc?` style="color:${dc}"`:''}>${r.dob||'—'}</td>
       <td>${fmt(r.ageAtTest)}</td>
