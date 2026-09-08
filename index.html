@@ -217,6 +217,7 @@ tr:last-child td{border-bottom:none}
       <span class="cl">Age:</span><select class="ctrl" id="tpd-age" onchange="renderTeamPerDay()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
       <span class="cl">Days:</span><select class="ctrl" id="tpd-n" onchange="renderTeamPerDay()"><option value="7">Last 7 days</option><option value="14">Last 14 days</option><option value="30" selected>Last 30 days</option><option value="all">All</option></select>
       <span class="cl">View:</span><select class="ctrl" id="tpd-agg" onchange="renderTeamPerDay()"><option value="avg" selected>Average</option><option value="sum">Sum</option></select>
+      <button class="export-btn" onclick="exportPDF('page-teamperday')" style="margin-left:auto">⬇ Export PDF</button>
     </div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Total Distance</div><div class="cb"><canvas id="c-tpd-dist"></canvas></div></div><div class="panel"><div class="pt">Distance Per Minute</div><div class="cb"><canvas id="c-tpd-dpm"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">HSR Distance</div><div class="cb"><canvas id="c-tpd-hsr"></canvas></div></div><div class="panel"><div class="pt">VHSR Distance</div><div class="cb"><canvas id="c-tpd-vhsr"></canvas></div></div></div>
@@ -234,6 +235,7 @@ tr:last-child td{border-bottom:none}
       <span class="cl">Age:</span><select class="ctrl" id="tw-age" onchange="renderTeamWeek()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
       <span class="cl">Range:</span><select class="ctrl" id="tw-range" onchange="renderTeamWeek()"><option value="4">Last 4 weeks</option><option value="8">Last 8 weeks</option><option value="12" selected>Last 12 weeks</option><option value="all">All weeks</option></select>
       <span class="cl">View:</span><select class="ctrl" id="tw-agg" onchange="renderTeamWeek()"><option value="sum" selected>Sum</option><option value="avg">Average</option></select>
+      <button class="export-btn" onclick="exportPDF('page-teamweek')" style="margin-left:auto">⬇ Export PDF</button>
     </div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Total Distance</div><div class="cb"><canvas id="c-tw-dist"></canvas></div></div><div class="panel"><div class="pt">Distance Per Minute</div><div class="cb"><canvas id="c-tw-dpm"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">HSR Distance</div><div class="cb"><canvas id="c-tw-hsr"></canvas></div></div><div class="panel"><div class="pt">VHSR Distance</div><div class="cb"><canvas id="c-tw-vhsr"></canvas></div></div></div>
@@ -246,7 +248,7 @@ tr:last-child td{border-bottom:none}
 <!-- PLAYER/DAY -->
 <div class="page" id="page-playerday">
   <div class="main">
-    <div class="ctrl-row"><span class="cl">Player:</span><select class="ctrl" id="pd-player"></select><span class="cl">Season:</span><select class="ctrl" id="pd-season" onchange="renderPlayerDay()"><option value="all">All Seasons</option></select><span class="cl">Sessions:</span><select class="ctrl" id="pd-n"><option value="7">Last 7 days</option><option value="10">Last 10</option><option value="20">Last 20</option><option value="30">Last 30</option></select></div>
+    <div class="ctrl-row"><span class="cl">Player:</span><select class="ctrl" id="pd-player"></select><span class="cl">Season:</span><select class="ctrl" id="pd-season" onchange="renderPlayerDay()"><option value="all">All Seasons</option></select><span class="cl">Sessions:</span><select class="ctrl" id="pd-n"><option value="7">Last 7 days</option><option value="10">Last 10</option><option value="20">Last 20</option><option value="30">Last 30</option></select><button class="export-btn" onclick="exportPDF('page-playerday')" style="margin-left:auto">⬇ Export PDF</button></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Total Distance</div><div class="cb"><canvas id="c-pd-dist"></canvas></div></div><div class="panel"><div class="pt">Distance Per Minute</div><div class="cb"><canvas id="c-pd-dpm"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">HSR Distance</div><div class="cb"><canvas id="c-pd-hsr"></canvas></div></div><div class="panel"><div class="pt">VHSR Distance</div><div class="cb"><canvas id="c-pd-vhsr"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Sprint Distance</div><div class="cb"><canvas id="c-pd-sprint"></canvas></div></div><div class="panel"><div class="pt">Explosive Distance</div><div class="cb"><canvas id="c-pd-expl"></canvas></div></div></div>
@@ -258,7 +260,7 @@ tr:last-child td{border-bottom:none}
 <!-- PLAYER/WEEK (playerweek) -->
 <div class="page" id="page-playerweek">
   <div class="main">
-    <div class="ctrl-row"><span class="cl">Player:</span><select class="ctrl" id="pw-player"></select><span class="cl">Season:</span><select class="ctrl" id="pw-season" onchange="renderPlayerWeek()"><option value="all">All Seasons</option></select><span class="cl">Range:</span><select class="ctrl" id="pw-range" onchange="renderPlayerWeek()"><option value="4">Last 4 weeks</option><option value="8">Last 8 weeks</option><option value="12" selected>Last 12 weeks</option><option value="all">All</option></select></div>
+    <div class="ctrl-row"><span class="cl">Player:</span><select class="ctrl" id="pw-player"></select><span class="cl">Season:</span><select class="ctrl" id="pw-season" onchange="renderPlayerWeek()"><option value="all">All Seasons</option></select><span class="cl">Range:</span><select class="ctrl" id="pw-range" onchange="renderPlayerWeek()"><option value="4">Last 4 weeks</option><option value="8">Last 8 weeks</option><option value="12" selected>Last 12 weeks</option><option value="all">All</option></select><button class="export-btn" onclick="exportPDF('page-playerweek')" style="margin-left:auto">⬇ Export PDF</button></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Total Distance</div><div class="cb"><canvas id="c-pw-dist"></canvas></div></div><div class="panel"><div class="pt">Distance Per Minute</div><div class="cb"><canvas id="c-pw-dpm"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">HSR Distance</div><div class="cb"><canvas id="c-pw-hsr"></canvas></div></div><div class="panel"><div class="pt">VHSR Distance</div><div class="cb"><canvas id="c-pw-vhsr"></canvas></div></div></div>
     <div class="pg g2 sg"><div class="panel"><div class="pt">Sprint Distance</div><div class="cb"><canvas id="c-pw-sprint"></canvas></div></div><div class="panel"><div class="pt">Explosive Distance</div><div class="cb"><canvas id="c-pw-expl"></canvas></div></div></div>
@@ -273,6 +275,7 @@ tr:last-child td{border-bottom:none}
     <div class="ctrl-row">
       <span class="cl">Team:</span><select class="ctrl" id="ac-team" onchange="renderACWR()"><option value="all">All Teams</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
       <span class="cl">Window:</span><span style="font-family:var(--fontb);font-size:12px;color:#888">Last 28 Days</span>
+      <button class="export-btn" onclick="exportPDF('page-acwr')" style="margin-left:auto">⬇ Export PDF</button>
     </div>
     <div style="display:flex;gap:10px;align-items:flex-start">
       <div style="flex:1;min-width:0">
@@ -507,7 +510,7 @@ tr:last-child td{border-bottom:none}
 <!-- TRIALIST -->
 <div class="page" id="page-trialist">
   <div class="main">
-    <div class="ctrl-row"><span class="cl">Player:</span><select class="ctrl" id="tr-cmj-player" onchange="renderTrialistCMJ();renderTrialistMS()"></select><span class="cl">Sessions:</span><select class="ctrl" id="tr-ms-date" onchange="renderTrialistMS()"><option value="latest">Latest</option><option value="all">All</option></select></div>
+    <div class="ctrl-row"><span class="cl">Player:</span><select class="ctrl" id="tr-cmj-player" onchange="renderTrialistCMJ();renderTrialistMS()"></select><span class="cl">Sessions:</span><select class="ctrl" id="tr-ms-date" onchange="renderTrialistMS()"><option value="latest">Latest</option><option value="all">All</option></select><button class="export-btn" onclick="exportPDF('page-trialist')" style="margin-left:auto">⬇ Export PDF</button></div>
     <div id="tr-cmj-dash"></div>
     <div class="panel sg"><div class="pt ptl">Trialist Movement Scores</div><div class="tw"><table id="tbl-tr-ms"></table></div></div>
     <div id="tr-ms-bench"></div>
@@ -517,7 +520,7 @@ tr:last-child td{border-bottom:none}
 <!-- MD+/- -->
 <div class="page" id="page-mdpm">
   <div class="main">
-    <div class="ctrl-row"><span class="cl">Season:</span><select class="ctrl" id="mdpm-season" onchange="renderMdpm()"><option value="all">All Seasons</option></select><span class="cl">Age:</span><select class="ctrl" id="mdpm-age" onchange="initMdpm()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select><span class="cl">Player:</span><select class="ctrl" id="mdpm-player"></select><span class="cl">Participation:</span><select class="ctrl" id="mdpm-part" onchange="renderMdpm()"><option value="full">Full Only</option><option value="all">All</option></select></div>
+    <div class="ctrl-row"><span class="cl">Season:</span><select class="ctrl" id="mdpm-season" onchange="renderMdpm()"><option value="all">All Seasons</option></select><span class="cl">Age:</span><select class="ctrl" id="mdpm-age" onchange="initMdpm()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select><span class="cl">Player:</span><select class="ctrl" id="mdpm-player"></select><span class="cl">Participation:</span><select class="ctrl" id="mdpm-part" onchange="renderMdpm()"><option value="full">Full Only</option><option value="all">All</option></select><button class="export-btn" onclick="exportPDF('page-mdpm')" style="margin-left:auto">⬇ Export PDF</button></div>
     <div class="md-chips" id="mdpm-chips"></div>
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:10px;padding:0 2px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:6px">
@@ -638,6 +641,7 @@ tr:last-child td{border-bottom:none}
         <span class="cl">Age:</span>
         <select class="ctrl" id="ms-age-filter" onchange="renderMSOv()"><option value="all">All Ages</option><option value="U13">U13</option><option value="U14">U14</option><option value="U15">U15</option><option value="U16">U16</option><option value="U18">U18</option></select>
         <select class="ctrl" id="ms-date-filter" onchange="renderMSOv()"><option value="latest">Latest Session</option><option value="all">All Sessions</option></select>
+        <button class="export-btn" onclick="exportPDF('page-movement')" style="margin-left:auto">⬇ Export PDF</button>
       </div>
     </div>
     <div class="panel sg"><div class="pt ptl">Squad Movement Scores</div><div class="tw"><table id="tbl-ms-ov"></table></div></div>
@@ -737,6 +741,7 @@ tr:last-child td{border-bottom:none}
       <span style="font-size:11px;color:var(--text3)">–</span>
       <input type="number" class="ctrl" id="phv-grw-max" placeholder="Max" step="1" style="width:70px" onchange="renderPHV()">
       <button class="ctrl" onclick="phvClearFilters()" style="cursor:pointer">✕ Clear</button>
+      <button class="export-btn" onclick="exportPDF('page-phv')" style="margin-left:auto">⬇ Export PDF</button>
     </div>
     <!-- Stage legend -->
     <div class="leg-bar" style="margin-bottom:8px">
@@ -2617,6 +2622,22 @@ function renderTrialistMS(){
 }
 
 // ── BOOT ──────────────────────────────────────────────────────────
+const PAGE_TITLES={
+  'page-daily':'DAILY REPORT',
+  'page-teamperday':'TEAM / DAY REPORT',
+  'page-teamweek':'TEAM / WEEK REPORT',
+  'page-playerday':'PLAYER / DAY REPORT',
+  'page-playerweek':'PLAYER / WEEK REPORT',
+  'page-acwr':'ACUTE:CHRONIC REPORT',
+  'page-trialist':'TRIALIST REPORT',
+  'page-mdpm':'MD +/- REPORT',
+  'page-testing':'TESTING REPORT',
+  'page-movement':'MOVEMENT SCREEN REPORT',
+  'page-rank':'RANKINGS REPORT',
+  'page-speedexp':'SPEED EXPOSURE REPORT',
+  'page-phv':'GROWTH & MATURATION REPORT',
+  'page-medical':'MEDICAL REPORT',
+};
 async function exportPDF(pageId){
   const page=document.getElementById(pageId);
   if(!page)return;
@@ -2742,11 +2763,14 @@ async function exportPDF(pageId){
         const dtypeLabel=dtypeSel?.options[dtypeSel.selectedIndex]?.text||'';
         pdf.setFontSize(16);pdf.text('RBNY ACADEMY — PLAYER COMPARISON',pgW/2,14,{align:'center'});
         pdf.setFontSize(10);pdf.text(dtypeLabel,pgW-margin,9,{align:'right'});
-      }else{
+      }else if(pageId==='page-daily'){
         const dateEl=document.getElementById('g-date');
         const dt=dateEl?.options[dateEl.selectedIndex]?.text||'';
         pdf.setFontSize(16);pdf.text('RBNY ACADEMY — DAILY REPORT',pgW/2,14,{align:'center'});
         pdf.setFontSize(10);pdf.text(dt,pgW-margin,9,{align:'right'});
+      }else{
+        const title=PAGE_TITLES[pageId]||'REPORT';
+        pdf.setFontSize(16);pdf.text('RBNY ACADEMY — '+title,pgW/2,14,{align:'center'});
       }
       if(pg>1){pdf.setFontSize(10);pdf.text(''+pg,margin,15);}
     };
@@ -2769,7 +2793,7 @@ async function exportPDF(pageId){
       }
     });
 
-    const name=isVald?(document.getElementById('vald-player')?.value||'testing'):isPC?'player-compare':'daily-report';
+    const name=isVald?(document.getElementById('vald-player')?.value||'testing'):isPC?'player-compare':pageId.replace('page-','');
     pdf.save(`RBNY-${name}-${new Date().toISOString().slice(0,10)}.pdf`);
   }catch(e){console.error(e);alert('PDF export failed: '+e.message);}
   finally{toHide.forEach(el=>{el.style.display=el._ph||'';});}
