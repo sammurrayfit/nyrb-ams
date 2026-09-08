@@ -170,6 +170,8 @@ tr:last-child td{border-bottom:none}
       <select class="ctrl" id="g-date" onchange="initDaily()"></select>
       <span class="cl">Pos:</span>
       <select class="ctrl" id="g-pos" onchange="initDaily()"><option value="all">All</option><option value="CB">CB</option><option value="FW">FW</option><option value="FB">FB</option><option value="GK">GK</option><option value="MF">MF</option></select>
+      <span class="cl">Session:</span>
+      <select class="ctrl" id="g-session" onchange="initDaily()"><option value="combined">Training and IDP Combined</option><option value="training">Training</option><option value="idp">IDP</option></select>
       <button class="export-btn" onclick="exportPDF('page-daily')">⬇ Export PDF</button>
     </div>
   </div>
@@ -1029,23 +1031,32 @@ function toggleAgePill(btn){
   }
   initDaily();
 }
+// Tolerates the sheet's recurring 'Traininig' misspelling in Session Type.
+function sessionTypeMatches(d,type){
+  const s=String(d.session||'').trim().toLowerCase();
+  if(type==='training')return s.startsWith('train');
+  if(type==='idp')return s.includes('idp');
+  return s.startsWith('train')||s.includes('idp');
+}
 function initDaily(){
   setupDateFilter();
   const selDate=document.getElementById('g-date').value;
   const pos=document.getElementById('g-pos').value;
+  const sessType=document.getElementById('g-session').value;
   const activePills=[...document.querySelectorAll('#daily-age-pills .age-pill.active')].map(b=>b.dataset.age);
   const ageAll=activePills.length===0||activePills.includes('all');
   let data=[];
   PLAYERS.forEach(p=>{const sess=(GPS[p]||[]).find(s=>s.date===selDate&&s.dist);if(sess)data.push({...sess,player:p,pos:PM[p]||'MF'});});
   if(!ageAll)data=data.filter(d=>activePills.includes(pAge(d.player)));
   if(pos!=='all')data=data.filter(d=>d.pos===pos);
-  if(!data.length){data=Object.values(LATEST).filter(d=>d.dist);if(pos!=='all')data=data.filter(d=>d.pos===pos);}
+  data=data.filter(d=>sessionTypeMatches(d,sessType));
+  if(!data.length){data=Object.values(LATEST).filter(d=>d.dist&&sessionTypeMatches(d,sessType));if(pos!=='all')data=data.filter(d=>d.pos===pos);}
   data=data.filter(d=>d.dist).sort((a,b)=>b.dist-a.dist);
   const kpis=[{k:'dist',l:'Avg Distance (m)'},{k:'dpm',l:'Avg Dist/Min'},{k:'hsr',l:'Avg HSR'},{k:'vhsr',l:'Avg VHSR'},{k:'sprint',l:'Avg Sprint'},{k:'expl',l:'Avg Explosive'},{k:'acc',l:'Avg Accels'},{k:'dec',l:'Avg Decels'}];
   // GK excluded from the blended average unless explicitly selected via the position filter.
   let kpiData=pos==='all'?data.filter(d=>d.pos!=='GK'):data;
-  // Averages only reflect players who trained fully — partial/modified participation and non-training sessions are excluded.
-  kpiData=kpiData.filter(d=>String(d.participation||'').trim().toLowerCase()==='full'&&String(d.session||'').trim().toLowerCase().startsWith('train'));
+  // Averages only reflect players who participated fully — partial/modified participation is excluded. Session type is already applied above.
+  kpiData=kpiData.filter(d=>String(d.participation||'').trim().toLowerCase()==='full');
   document.getElementById('daily-kpis').innerHTML=kpis.map(({k,l})=>`<div><div class="kv">${avg(kpiData.map(d=>d[k]))}</div><div class="kl">${l}</div></div>`).join('');
   METRICS.forEach(key=>{const sorted=[...data].filter(d=>d[key]!=null).sort((a,b)=>b[key]-a[key]);mkBarM('c-'+key,sorted.map(d=>d.player),sorted.map(d=>d[key]),sorted.map(d=>PC[d.pos]||'#888'),sorted.map(d=>(PC[d.pos]||'#888')+'55'));});
 }
