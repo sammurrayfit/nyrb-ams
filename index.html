@@ -171,7 +171,7 @@ tr:last-child td{border-bottom:none}
       <span class="cl">Pos:</span>
       <select class="ctrl" id="g-pos" onchange="initDaily()"><option value="all">All</option><option value="CB">CB</option><option value="FW">FW</option><option value="FB">FB</option><option value="GK">GK</option><option value="MF">MF</option></select>
       <span class="cl">Session:</span>
-      <select class="ctrl" id="g-session" onchange="initDaily()"><option value="combined">Training and IDP Combined</option><option value="training">Training</option><option value="idp">IDP</option></select>
+      <select class="ctrl" id="g-session" onchange="initDaily()"><option value="combined">Training and IDP Combined</option><option value="training">Training</option><option value="idp">IDP</option><option value="match">Matches</option></select>
       <button class="export-btn" onclick="exportPDF('page-daily')">⬇ Export PDF</button>
     </div>
   </div>
@@ -1032,10 +1032,12 @@ function toggleAgePill(btn){
   initDaily();
 }
 // Tolerates the sheet's recurring 'Traininig' misspelling in Session Type.
+// Matches use the MD (-) column, same signal the Match Day page keys off of.
 function sessionTypeMatches(d,type){
   const s=String(d.session||'').trim().toLowerCase();
   if(type==='training')return s.startsWith('train');
   if(type==='idp')return s.includes('idp');
+  if(type==='match')return String(d.md||'').trim().toUpperCase()==='MD';
   return s.startsWith('train')||s.includes('idp');
 }
 function initDaily(){
