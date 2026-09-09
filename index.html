@@ -2655,13 +2655,13 @@ async function exportPDF(pageId){
   toHide.forEach(el=>{el._ph=el.style.display;el.style.display='none';});
 
   const CS=3;
-  // For VALD: measure every panel's top relative to the page element (before capture),
-  // so page breaks always land between panels instead of splitting one down the middle.
+  // Measure every panel/chart card's top relative to the page element (before capture),
+  // so page breaks always land between cards instead of splitting one down the middle.
   let panelTopsPx=[];
-  if(isVald){
-    const dash=document.getElementById('vald-dash');
+  {
     const pTop=page.getBoundingClientRect().top;
-    panelTopsPx=[...(dash?.querySelectorAll('.vp,.vpf')||[])].map(el=>Math.round((el.getBoundingClientRect().top-pTop)*CS));
+    const cards=isVald?(document.getElementById('vald-dash')?.querySelectorAll('.vp,.vpf')||[]):page.querySelectorAll('.panel');
+    panelTopsPx=[...cards].map(el=>Math.round((el.getBoundingClientRect().top-pTop)*CS));
   }
 
   try{
@@ -2674,14 +2674,20 @@ async function exportPDF(pageId){
     const headerH=isVald?28:22;
     const usableW=pgW-margin*2;
     const usableH=pgH-headerH-margin;
-    const mmPerPx=usableW/(canvas.width/CS);
+    // Never magnify content past its true on-screen size (96 CSS px/in) — only shrink
+    // to fit the page width when the captured content is actually wider than that.
+    const nativeMmPerPx=25.4/96;
+    const fillMmPerPx=usableW/(canvas.width/CS);
+    const mmPerPx=Math.min(nativeMmPerPx,fillMmPerPx);
+    const imgWmm=(canvas.width/CS)*mmPerPx;
+    const imgX=margin+(usableW-imgWmm)/2;
 
-    // Build page slices. For VALD, greedily pack whole panels onto each page
-    // (never cutting through one) using their measured top offsets as the only
-    // valid break points; other pages auto-split by even height.
+    // Build page slices. Greedily pack whole panels/cards onto each page (never
+    // cutting through one) using their measured top offsets as valid break points;
+    // pages with no detected cards (e.g. Match Day's gauge grid) auto-split by even height.
     let slices=[];
     const usableHpx=usableH*CS/mmPerPx;
-    if(isVald&&panelTopsPx.length){
+    if(panelTopsPx.length){
       const points=[...new Set([0,...panelTopsPx.filter(p=>p>0&&p<canvas.height),canvas.height])].sort((a,b)=>a-b);
       let start=0,idx=1;
       while(start<canvas.height){
@@ -2783,13 +2789,13 @@ async function exportPDF(pageId){
       sc.width=canvas.width;sc.height=slicePx;
       sc.getContext('2d').drawImage(canvas,0,s,canvas.width,slicePx,0,0,canvas.width,slicePx);
       const natH=(slicePx/CS)*mmPerPx;
-      // Scale to fit page height if needed; always fill page width
+      // Draw at true size (imgWmm); only shrink further if a slice still overflows page height.
       if(natH>usableH){
         const r=usableH/natH;
-        const iW=usableW*r;
+        const iW=imgWmm*r;
         pdf.addImage(sc.toDataURL('image/jpeg',0.92),'JPEG',margin+(usableW-iW)/2,headerH+2,iW,usableH);
       }else{
-        pdf.addImage(sc.toDataURL('image/jpeg',0.92),'JPEG',margin,headerH+2,usableW,natH);
+        pdf.addImage(sc.toDataURL('image/jpeg',0.92),'JPEG',imgX,headerH+2,imgWmm,natH);
       }
     });
 
