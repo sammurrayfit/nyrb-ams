@@ -1037,13 +1037,21 @@ function toggleAgePill(btn){
   initDaily();
 }
 // Tolerates the sheet's recurring 'Traininig' misspelling in Session Type.
-// Matches use the MD (-) column, same signal the Match Day page keys off of.
+// Matches use the MD (-) column, same signal the Match Day page keys off of — but
+// that column is a per-player day-offset (it reads 'MD' for everyone on a match date,
+// even a player who did RTP/rehab at the facility instead of playing), so a known
+// individual-session label always overrides it.
+const INDIVIDUAL_SESSION_LABELS=new Set(['training','traininig','idp','pre-season','pre season','rtp','testing','conditioning','rehab','general','regen','international','rb2','']);
 function sessionTypeMatches(d,type){
   const s=String(d.session||'').trim().toLowerCase();
+  const isIndividual=INDIVIDUAL_SESSION_LABELS.has(s);
+  const isMatch=!isIndividual&&String(d.md||'').trim().toUpperCase()==='MD';
   if(type==='training')return s.startsWith('train');
   if(type==='idp')return s.includes('idp');
-  if(type==='match')return String(d.md||'').trim().toUpperCase()==='MD';
-  return s.startsWith('train')||s.includes('idp');
+  if(type==='match')return isMatch;
+  // combined: every non-match session, not just ones literally tagged Training/IDP
+  // (sheet also has Pre-Season, RTP, Testing, Conditioning, Rehab, etc.)
+  return !isMatch;
 }
 function initDaily(){
   setupDateFilter();
