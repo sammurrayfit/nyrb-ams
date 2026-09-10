@@ -1370,11 +1370,11 @@ function buildACWRSnapshot(metricKey,teamFilter){
     if(teamFilter!=='all'&&pAge(p)!==teamFilter)return;
     const dayMap={};
     (GPS[p]||[]).forEach(s=>{
-      if(!s.date||s.dist==null||s[metricKey]==null)return;
+      if(!s.date||s.dist==null)return;
       const dt=parseDate(s.date);
       const key=dayKey(dt);
       if(!dayMap[key])dayMap[key]=[];
-      dayMap[key].push(s[metricKey]);
+      dayMap[key].push(s);
       if(!latest||dt>latest)latest=dt;
     });
     if(Object.keys(dayMap).length)playerDays[p]=dayMap;
@@ -1389,8 +1389,11 @@ function buildACWRSnapshot(metricKey,teamFilter){
     const dayMap=playerDays[p];
     let ewmaA=null,ewmaC=null;
     days.forEach((d,i)=>{
-      const vals=dayMap[dayKey(d)];
-      const load=vals?avg(vals):0;
+      const sessions=dayMap[dayKey(d)];
+      // Combine same-day sessions (e.g. Training + IDP) into one day total
+      // instead of averaging them, which would dilute a split-session day's
+      // true training load.
+      const load=sessions?(combineDaySessions(sessions)[metricKey]??0):0;
       if(i===0){ewmaA=load;ewmaC=load;}
       else{ewmaA=dA*load+(1-dA)*ewmaA;ewmaC=dC*load+(1-dC)*ewmaC;}
     });
