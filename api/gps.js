@@ -76,7 +76,7 @@ module.exports = async (req, res) => {
     const matchList = Object.values(matchByKey)
       .map(v => [v.date, { label: v.label, data: v.data }])
       .sort(([a], [b]) => a.localeCompare(b));
-    const METRIC_KEYS = ['dist', 'dpm', 'hsr', 'sprint', 'expl', 'maxspd', 'acc', 'dec'];
+    const METRIC_KEYS = ['dist', 'dpm', 'hsr', 'vhsr', 'sprint', 'expl', 'maxspd', 'acc', 'dec'];
     // Weekly value has two flavors:
     //   sum = grand total of every session's value within the ISO week
     //         (every player, every session, summed).
@@ -90,29 +90,46 @@ module.exports = async (req, res) => {
     // calendar week is the only grouping that's meaningful across teams.
     // Per-team views use the sheet's own Week column instead (see gps
     // field `week` below, consumed client-side).
-    const dailyMap = {};
+    //
+    // A player can have more than one row on the same date (e.g. a separate
+    // Training block and an IDP block) — those get combined into one record
+    // per player per day before rolling into the daily/weekly aggregate, so
+    // a split-session day isn't double-counted as if two players trained.
+    const dailyPlayerRows = {};
     rows.forEach(r => {
       const d = r['Date'];
-      if (!d || isAggregateRow(r['Name'])) return;
+      const player = r['Name'];
+      if (!d || !player || isAggregateRow(player)) return;
       if (normalizePos(r['Position'] || '') === 'GK') return;
       const date = new Date(d);
       if (isNaN(date)) return;
-      if (!dailyMap[d]) {
-        dailyMap[d] = { date, vals: {} };
-        METRIC_KEYS.forEach(k => { dailyMap[d].vals[k] = []; });
-      }
-      const mapped = {
-        dist:   toNum(r['Distance (m)']),
+      const dist = toNum(r['Distance (m)']);
+      if (dist == null) return;
+      if (!dailyPlayerRows[d]) dailyPlayerRows[d] = { date, players: {} };
+      if (!dailyPlayerRows[d].players[player]) dailyPlayerRows[d].players[player] = [];
+      dailyPlayerRows[d].players[player].push({
+        dist,
         dpm:    toNum(r['Distance / min (m)']),
         hsr:    toNum(r['Distance (HSR) (m)']),
+        vhsr:   toNum(r['Distance (VHSR) (m)']),
         sprint: toNum(r['Distance(speed |Sprinting) (m)']),
         expl:   toNum(r['Explosive Distance (m)']),
         maxspd: toNum(r['Speed (max.) (m/s)']),
         acc:    toNum(r['Accelerations (high)']),
         dec:    toNum(r['Decelerations (high)']),
-      };
-      METRIC_KEYS.forEach(k => {
-        if (mapped[k] != null) dailyMap[d].vals[k].push(mapped[k]);
+        mins:   toNum(r['Session Length (Mins)']),
+      });
+    });
+    const dailyMap = {};
+    Object.keys(dailyPlayerRows).forEach(d => {
+      const { date, players } = dailyPlayerRows[d];
+      dailyMap[d] = { date, vals: {} };
+      METRIC_KEYS.forEach(k => { dailyMap[d].vals[k] = []; });
+      Object.values(players).forEach(sessions => {
+        const combined = combineSessions(sessions);
+        METRIC_KEYS.forEach(k => {
+          if (combined[k] != null) dailyMap[d].vals[k].push(combined[k]);
+        });
       });
     });
     const weeklyAgg = {};
@@ -185,6 +202,24 @@ function dedupeRows(rows) {
     // otherwise keep whichever was already kept (drop this duplicate)
   });
   return order;
+}
+// Sums cumulative metrics across a player's same-day sessions, takes the
+// peak for max speed, and recomputes dist/min from the totals when session
+// length is available (mirrors combineDaySessions() in index.html).
+function combineSessions(sessions) {
+  if (sessions.length === 1) return sessions[0];
+  const sum = k => { const vs = sessions.map(s => s[k]).filter(v => v != null); return vs.length ? vs.reduce((a, b) => a + b, 0) : null; };
+  const max = k => { const vs = sessions.map(s => s[k]).filter(v => v != null); return vs.length ? Math.max(...vs) : null; };
+  const out = { ...sessions[0] };
+  ['dist', 'hsr', 'vhsr', 'sprint', 'expl', 'acc', 'dec', 'mins'].forEach(k => { out[k] = sum(k); });
+  out.maxspd = max('maxspd');
+  if (out.mins) {
+    out.dpm = +(out.dist / out.mins).toFixed(1);
+  } else {
+    const vs = sessions.map(s => s.dpm).filter(v => v != null);
+    out.dpm = vs.length ? +(vs.reduce((a, b) => a + b, 0) / vs.length).toFixed(1) : null;
+  }
+  return out;
 }
 function isAggregateRow(name) {
   const n = String(name || '').trim().toLowerCase();
