@@ -1310,7 +1310,12 @@ function renderPlayerDay(){
   const player=document.getElementById('pd-player').value;
   const nVal=document.getElementById('pd-n').value;
   const seasonF=document.getElementById('pd-season')?.value||'all';
-  let sessions=(GPS[player]||[]).filter(s=>s.dist&&inSeason(s.date,seasonF));
+  const raw=(GPS[player]||[]).filter(s=>s.dist&&inSeason(s.date,seasonF));
+  // Combine same-day sessions (e.g. a separate Training block and an IDP
+  // block) into one data point instead of plotting two bars for one day.
+  const byDate={};
+  raw.forEach(s=>{(byDate[s.date]=byDate[s.date]||[]).push(s);});
+  let sessions=Object.keys(byDate).sort((a,b)=>parseDate(a)-parseDate(b)).map(d=>combineDaySessions(byDate[d]));
   if(nVal==='7'){const cutoff=new Date();cutoff.setDate(cutoff.getDate()-7);sessions=sessions.filter(s=>new Date(s.date)>=cutoff);}
   else sessions=sessions.slice(-+nVal);
   const labels=sessions.map(s=>{const p=parseDate(s.date);return`${p.getMonth()+1}/${p.getDate()}`;});
