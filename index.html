@@ -920,7 +920,7 @@ function rcol(v){return v>=5?'#007a30':v>=4?'#5a9000':v>=3?'#d4a000':v>=2?'#e050
 const PC={CB:'#b0b0b0',FW:'#e8a0a8',FB:'#444',GK:'#1a1a1a',MF:'#cc0000'};
 const PCOLORS=['#cc0000','#0055cc','#007a30','#ff9500','#9b59b6','#1a1a1a','#00b4d8','#e67e22','#16a085','#e91e63','#f06292','#8d6e63','#43a047','#5c6bc0','#fdd835','#26a69a','#ef5350','#7e57c2','#66bb6a','#ff7043','#29b6f6','#ab47bc','#d4e157','#ec407a','#26c6da','#ff8f00','#6d4c41','#00897b','#3949ab','#c0ca33'];
 const MC={dist:{c:'#cc0000',bg:'rgba(204,0,0,0.45)'},dpm:{c:'#990000',bg:'rgba(153,0,0,0.45)'},hsr:{c:'#444444',bg:'rgba(68,68,68,0.45)'},vhsr:{c:'#880000',bg:'rgba(136,0,0,0.45)'},sprint:{c:'#1a1a1a',bg:'rgba(26,26,26,0.45)'},expl:{c:'#bb0000',bg:'rgba(187,0,0,0.45)'},maxspd:{c:'#666666',bg:'rgba(102,102,102,0.45)'},acc:{c:'#770000',bg:'rgba(119,0,0,0.45)'},dec:{c:'#333333',bg:'rgba(51,51,51,0.45)'}};
-const MD_DAYS=['MD-5','MD-4','MD-3','MD-2','MD-1','MD','MD+1'];
+const MD_DAYS=['MD-5','MD-4','MD-3','MD-2','MD-1','MD','MD+1','IDP'];
 const METRICS=['dist','dpm','hsr','vhsr','sprint','expl','maxspd','acc','dec'];
 
 function showLoader(){document.getElementById('loader-overlay').style.display='flex';}
@@ -1926,7 +1926,8 @@ function renderMdpm(){
   } else {
     sessions=(GPS[player]||[]).filter(s=>s.dist&&s.md&&inSeason(s.date,seasonF));
   }
-  const mdGroups={'MD-5':[],'MD-4':[],'MD-3':[],'MD-2':[],'MD-1':[],'MD':[],'MD+1':[]};
+  const mdGroups={};
+  MD_DAYS.forEach(d=>mdGroups[d]=[]);
   sessions.forEach(s=>{const md=String(s.md).trim();if(mdGroups[md])mdGroups[md].push(s);});
   const activeGroups={};
   MD_DAYS.forEach(d=>{
@@ -1934,12 +1935,12 @@ function renderMdpm(){
       ?mdGroups[d].filter(s=>String(s.participation||'').trim()==='Full')
       :mdGroups[d];
   });
-  const cc=d=>d==='MD'?'#1a1a1a':d.includes('+')?'#990000':'#cc0000';
+  const cc=d=>d==='IDP'?'#ff9500':d==='MD'?'#1a1a1a':d.includes('+')?'#990000':'#cc0000';
   const distAvgs=MD_DAYS.map(d=>activeGroups[d]?.length?Math.round(avg(activeGroups[d].map(s=>s.dist))):null);
   document.getElementById('mdpm-chips').innerHTML=MD_DAYS.map((d,i)=>`<div class="md-chip" style="border-top-color:${cc(d)}"><div class="mcd" style="color:${cc(d)}">${d}</div><div class="mcv" style="color:${cc(d)}">${distAvgs[i]||'—'}</div><div class="mcu">m avg</div></div>`).join('');
   ['dist','hsr','vhsr','sprint','expl','acc','dec'].forEach(k=>{
     const avgs=MD_DAYS.map(d=>activeGroups[d]?.length?Math.round(avg(activeGroups[d].map(s=>s[k]).filter(x=>x!=null))):null);
-    mkBarLine('c-mdpm-'+k,MD_DAYS,avgs,Array(7).fill(Math.round(avg(avgs.filter(x=>x!=null))||0)),MC[k]?.c||'#cc0000');
+    mkBarLine('c-mdpm-'+k,MD_DAYS,avgs,Array(MD_DAYS.length).fill(Math.round(avg(avgs.filter(x=>x!=null))||0)),MC[k]?.c||'#cc0000');
   });
 }
 
