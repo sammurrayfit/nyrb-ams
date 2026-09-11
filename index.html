@@ -1212,7 +1212,7 @@ function renderTeamPerDay(){
   const byPlayerDate={};
   eligible.forEach(p=>{
     const byDate={};
-    (GPS[p]||[]).forEach(s=>{if(s.dist&&s.date&&inSeason(s.date,seasonF))(byDate[s.date]=byDate[s.date]||[]).push(s);});
+    (GPS[p]||[]).forEach(s=>{if(s.dist&&s.date&&inSeason(s.date,seasonF)){const nd=dayKey(parseDate(s.date));(byDate[nd]=byDate[nd]||[]).push(s);}});
     byPlayerDate[p]={};
     Object.keys(byDate).forEach(d=>{byPlayerDate[p][d]=combineDaySessions(byDate[d]);});
   });
@@ -1251,7 +1251,8 @@ function renderTeamWeek(){
       (GPS[p]||[]).forEach(s=>{
         if(s.week==null||!s.date||!s.dist)return;
         if(seasonF!=='all'&&dateToSeason(s.date)!==seasonF)return;
-        (byDate[s.date]=byDate[s.date]||[]).push(s);
+        const nd=dayKey(parseDate(s.date));
+        (byDate[nd]=byDate[nd]||[]).push(s);
       });
       twByPlayerDate.byPlayerDate[p]={};
       Object.keys(byDate).forEach(d=>{
@@ -1326,7 +1327,7 @@ function renderPlayerDay(){
   // Combine same-day sessions (e.g. a separate Training block and an IDP
   // block) into one data point instead of plotting two bars for one day.
   const byDate={};
-  raw.forEach(s=>{(byDate[s.date]=byDate[s.date]||[]).push(s);});
+  raw.forEach(s=>{const nd=dayKey(parseDate(s.date));(byDate[nd]=byDate[nd]||[]).push(s);});
   let sessions=Object.keys(byDate).sort((a,b)=>parseDate(a)-parseDate(b)).map(d=>combineDaySessions(byDate[d]));
   if(nVal==='7'){const cutoff=new Date();cutoff.setDate(cutoff.getDate()-7);sessions=sessions.filter(s=>new Date(s.date)>=cutoff);}
   else sessions=sessions.slice(-+nVal);

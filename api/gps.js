@@ -178,15 +178,20 @@ module.exports = async (req, res) => {
 // Manual GPS exports get re-pasted with overlapping date ranges, so the
 // same session (same player/date/distance/HMLD/session length) sometimes
 // ends up in the sheet twice -- once under its specific MD (-) tag and
-// once under "General", or as a plain repeated row. Keep one row per
-// session, preferring the specific tag over "General" when both exist.
+// once under "General", or as a plain repeated row -- and occasionally
+// under two different date formats for the same calendar day (e.g.
+// "5/9/26" and "5/9/2026"). Keep one row per session, preferring the
+// specific tag over "General" when both exist, matching on the parsed
+// calendar date rather than the raw date string so format doesn't matter.
 function dedupeRows(rows) {
   const seen = new Map();
   const order = [];
   rows.forEach(r => {
     const name = String(r['Name'] || '').trim();
     if (!name || isAggregateRow(name)) { order.push(r); return; }
-    const key = [name, r['Date'], r['Distance (m)'], r['HMLD (m)'], r['Session Length (Mins)']].join('|');
+    const d = parseD(r['Date']);
+    const dateKey = d ? `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}` : r['Date'];
+    const key = [name, dateKey, r['Distance (m)'], r['HMLD (m)'], r['Session Length (Mins)']].join('|');
     const existing = seen.get(key);
     if (!existing) {
       seen.set(key, r);
