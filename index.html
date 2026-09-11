@@ -206,6 +206,7 @@ tr:last-child td{border-bottom:none}
     </div>
     <div id="md-debug" style="font-size:11px;color:#888;padding:4px 0 8px;font-family:monospace"></div>
     <div id="gauges" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+    <div class="panel sg" style="margin-top:12px"><div class="pt ptl">Player Minutes</div><div class="tw"><table id="tbl-md-mins"></table></div></div>
   </div>
 </div>
 
@@ -1126,6 +1127,10 @@ function renderGauges(idx){
   let mdData=(info.data||[]).filter(d=>d.dist&&d.pos!=='GK'&&(ageF==='all'||d.age===ageF));
   if(lf==='full')mdData=mdData.filter(d=>getMins(d)>=60);
   else if(lf==='under')mdData=mdData.filter(d=>{const m=getMins(d);return m>0&&m<60;});
+  // Minutes table includes GKs (excluded above since they don't wear GPS units).
+  let mdMinsData=(info.data||[]).filter(d=>ageF==='all'||d.age===ageF);
+  if(lf==='full')mdMinsData=mdMinsData.filter(d=>getMins(d)>=60);
+  else if(lf==='under')mdMinsData=mdMinsData.filter(d=>{const m=getMins(d);return m>0&&m<60;});
   const weighted=document.getElementById('md-view')?.value==='weighted';
   const wMetrics=new Set(['dist','hsr','vhsr','sprint','expl','acc','dec']);
   const teamAvg=(data,k)=>{
@@ -1196,7 +1201,19 @@ function renderGauges(idx){
       </div>
     </div>`;
   }).join('');
+  renderMdMinutes(mdMinsData);
 }
+// Minutes table for the selected match day — includes GKs (unlike the GPS
+// gauges above, which exclude them since they don't wear GPS units).
+function renderMdMinutes(mdData){
+  const rows=[...mdData].filter(d=>d.name).sort((a,b)=>getMinsMd(b)-getMinsMd(a));
+  if(!rows.length){document.getElementById('tbl-md-mins').innerHTML='<tbody><tr><td style="color:#999">No data for this match.</td></tr></tbody>';return;}
+  document.getElementById('tbl-md-mins').innerHTML=
+    '<thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>Minutes</th></tr></thead><tbody>'+
+    rows.map(d=>`<tr><td style="font-weight:700">${d.name}</td><td>${posBadge(d.pos||PM[d.name]||'?')}</td><td>${ageBadge(d.age||pAge(d.name)||'?')}</td><td style="font-family:var(--font);font-weight:800">${getMinsMd(d)||'—'}</td></tr>`).join('')+
+    '</tbody>';
+}
+function getMinsMd(d){return+(d.mins)||0;}
 
 // ── TEAM/PER DAY ──────────────────────────────────────────────────
 function initTeamPerDay(){renderTeamPerDay();}
