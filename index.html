@@ -1204,16 +1204,30 @@ function renderGauges(idx){
   renderMdMinutes(mdMinsData);
 }
 // Minutes table for the selected match day — includes GKs (unlike the GPS
-// gauges above, which exclude them since they don't wear GPS units).
+// gauges above, which exclude them since they don't wear GPS units). The
+// Age filter narrows which players show up (their age in this match), but
+// the season-total column always sums a player's minutes across every
+// match all season, regardless of age group played.
 function renderMdMinutes(mdData){
   const rows=[...mdData].filter(d=>d.name).sort((a,b)=>getMinsMd(b)-getMinsMd(a));
   if(!rows.length){document.getElementById('tbl-md-mins').innerHTML='<tbody><tr><td style="color:#999">No data for this match.</td></tr></tbody>';return;}
+  const seasonMins=seasonMinutesByPlayer();
   document.getElementById('tbl-md-mins').innerHTML=
-    '<thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>Minutes</th></tr></thead><tbody>'+
-    rows.map(d=>`<tr><td style="font-weight:700">${d.name}</td><td>${posBadge(d.pos||PM[d.name]||'?')}</td><td>${ageBadge(d.age||pAge(d.name)||'?')}</td><td style="font-family:var(--font);font-weight:800">${getMinsMd(d)||'—'}</td></tr>`).join('')+
+    '<thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>Minutes</th><th>Season Minutes</th></tr></thead><tbody>'+
+    rows.map(d=>`<tr><td style="font-weight:700">${d.name}</td><td>${posBadge(d.pos||PM[d.name]||'?')}</td><td>${ageBadge(d.age||pAge(d.name)||'?')}</td><td style="font-family:var(--font);font-weight:800">${getMinsMd(d)||'—'}</td><td style="font-family:var(--font);font-weight:800">${seasonMins[d.name]||0}</td></tr>`).join('')+
     '</tbody>';
 }
 function getMinsMd(d){return+(d.mins)||0;}
+// Sums each player's match minutes across every match in MATCH_LIST,
+// pooling all age groups they played in — used for the Season Minutes
+// column, which is intentionally unaffected by the Age filter.
+function seasonMinutesByPlayer(){
+  const out={};
+  MATCH_LIST.forEach(([,inf])=>{
+    (inf.data||[]).forEach(d=>{if(d.name)out[d.name]=(out[d.name]||0)+getMinsMd(d);});
+  });
+  return out;
+}
 
 // ── TEAM/PER DAY ──────────────────────────────────────────────────
 function initTeamPerDay(){renderTeamPerDay();}
