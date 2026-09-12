@@ -1120,7 +1120,12 @@ function initMatchday(){
 }
 function renderGauges(idx){
   if(idx<0||idx>=MATCH_LIST.length)return;
-  const [,info]=MATCH_LIST[idx];
+  const [matchDate,info]=MATCH_LIST[idx];
+  // MATCH_LIST spans every season in the sheet, not just the current one, so
+  // every "season" aggregate below is scoped to whichever season the
+  // selected match falls in (there's no separate season filter on this page).
+  const currentSeason=dateToSeason(matchDate);
+  const seasonMatches=MATCH_LIST.filter(([d])=>dateToSeason(d)===currentSeason);
   const lf=document.getElementById('md-load').value;
   const getMins=d=>+(d.mins)||0;
   const ageF=document.getElementById('md-age')?.value||'all';
@@ -1140,7 +1145,7 @@ function renderGauges(idx){
     if(!rows.length)return v.length?+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):0;
     return+(rows.reduce((s,d)=>s+d[k]*getMins(d),0)/rows.reduce((s,d)=>s+getMins(d),0)).toFixed(1);
   };
-  const seasonData=MATCH_LIST.flatMap(([,inf])=>{
+  const seasonData=seasonMatches.flatMap(([,inf])=>{
     let d=(inf.data||[]).filter(x=>x.dist&&x.pos!=='GK'&&(ageF==='all'||x.age===ageF));
     if(lf==='full')d=d.filter(x=>getMins(x)>=60);
     else if(lf==='under')d=d.filter(x=>{const m=getMins(x);return m>0&&m<60;});
@@ -1161,7 +1166,7 @@ function renderGauges(idx){
   document.getElementById('gauges').innerHTML=metrics.map((m,i)=>{
     const cur=+teamAvg(mdData,m);
     const sAvg=+teamAvg(seasonData,m);
-    const perMatchVals=MATCH_LIST.map(([,inf])=>{
+    const perMatchVals=seasonMatches.map(([,inf])=>{
       let d=(inf.data||[]).filter(x=>x.dist&&x.pos!=='GK');
       if(lf==='full')d=d.filter(x=>getMins(x)>=60);
       else if(lf==='under')d=d.filter(x=>{const m=getMins(x);return m>0&&m<60;});
@@ -1201,30 +1206,31 @@ function renderGauges(idx){
       </div>
     </div>`;
   }).join('');
-  renderMdMinutes(mdMinsData);
+  renderMdMinutes(mdMinsData,currentSeason);
 }
 // Minutes table for the selected match day — includes GKs (unlike the GPS
 // gauges above, which exclude them since they don't wear GPS units). The
 // Age filter narrows which players show up (their age in this match), but
 // the season-total column always sums a player's minutes across every
-// match all season, regardless of age group played.
-function renderMdMinutes(mdData){
+// match in that season, regardless of age group played.
+function renderMdMinutes(mdData,season){
   const rows=[...mdData].filter(d=>d.name).sort((a,b)=>getMinsMd(b)-getMinsMd(a));
   if(!rows.length){document.getElementById('tbl-md-mins').innerHTML='<tbody><tr><td style="color:#999">No data for this match.</td></tr></tbody>';return;}
-  const seasonMins=seasonMinutesByPlayer();
+  const seasonMins=seasonMinutesByPlayer(season);
   document.getElementById('tbl-md-mins').innerHTML=
     '<thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>Minutes</th><th>Season Minutes</th></tr></thead><tbody>'+
     rows.map(d=>`<tr><td style="font-weight:700">${d.name}</td><td>${posBadge(d.pos||PM[d.name]||'?')}</td><td>${ageBadge(d.age||pAge(d.name)||'?')}</td><td style="font-family:var(--font);font-weight:800">${getMinsMd(d)||'—'}</td><td style="font-family:var(--font);font-weight:800">${seasonMins[d.name]||0}</td></tr>`).join('')+
     '</tbody>';
 }
 function getMinsMd(d){return+(d.mins)||0;}
-// Sums each player's match minutes across every match in MATCH_LIST,
-// pooling all age groups they played in — used for the Season Minutes
-// column, which is intentionally unaffected by the Age filter.
-function seasonMinutesByPlayer(){
+// Sums each player's match minutes across every MATCH_LIST entry in the
+// given season, pooling all age groups they played in — used for the
+// Season Minutes column, which is intentionally unaffected by the Age filter.
+function seasonMinutesByPlayer(season){
   const out={};
-  MATCH_LIST.forEach(([,inf])=>{
-    (inf.data||[]).forEach(d=>{if(d.name)out[d.name]=(out[d.name]||0)+getMinsMd(d);});
+  MATCH_LIST.forEach(([d,inf])=>{
+    if(dateToSeason(d)!==season)return;
+    (inf.data||[]).forEach(x=>{if(x.name)out[x.name]=(out[x.name]||0)+getMinsMd(x);});
   });
   return out;
 }
